@@ -6,21 +6,8 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Seeding WorkZen HRMS database...');
 
-  // Clean existing data
-  await prisma.salaryComponent.deleteMany();
-  await prisma.salaryStructure.deleteMany();
-  await prisma.projectAssignment.deleteMany();
-  await prisma.project.deleteMany();
-  await prisma.workforceInsight.deleteMany();
-  await prisma.employeeSkill.deleteMany();
-  await prisma.performanceReview.deleteMany();
-  await prisma.leaveBalance.deleteMany();
-  await prisma.leaveRequest.deleteMany();
-  await prisma.attendance.deleteMany();
-  await prisma.employee.deleteMany();
-  await prisma.user.deleteMany();
-  await prisma.skill.deleteMany();
-  await prisma.department.deleteMany();
+  // Nuke everything in correct order
+  await prisma.$executeRawUnsafe(`TRUNCATE TABLE "SalaryComponent", "SalaryStructure", "ProjectAssignment", "Project", "WorkforceInsight", "EmployeeSkill", "PerformanceReview", "LeaveBalance", "LeaveRequest", "Attendance", "Employee", "User", "Skill", "Department" CASCADE`);
 
   const passwordHash = await bcrypt.hash('admin123', 10);
   const empPasswordHash = await bcrypt.hash('emp123', 10);

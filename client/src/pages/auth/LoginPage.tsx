@@ -26,7 +26,7 @@ export default function LoginPage() {
   };
 
   const fillDemo = (role: 'admin' | 'hr' | 'emp') => {
-    const creds = { admin: { email: 'admin@workzen.com', password: 'admin123' }, hr: { email: 'hr@workzen.com', password: 'admin123' }, emp: { email: 'priya.sharma@workzen.com', password: 'emp123' } };
+    const creds = { admin: { email: 'admin@workzen.com', password: 'admin123' }, hr: { email: 'hr@workzen.com', password: 'admin123' }, emp: { email: 'priya.patel@workzen.com', password: 'emp123' } };
     setEmail(creds[role].email); setPassword(creds[role].password); setError('');
   };
 
