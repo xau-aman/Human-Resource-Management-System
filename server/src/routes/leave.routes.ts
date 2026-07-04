@@ -1,13 +1,13 @@
 import { Router } from 'express';
 import * as leaveController from '../controllers/leave.controller';
+import { authenticate, adminHROrManager, allRoles } from '../middleware/auth.middleware';
 
 const router = Router();
 
-router.get('/', leaveController.getLeaveRequests);
-router.get('/balance/:employeeId', leaveController.getLeaveBalance);
-router.post('/validate', leaveController.validateLeaveRequest);
-router.post('/', leaveController.createLeaveRequest);
-router.patch('/:id/approve', leaveController.approveLeave);
-router.patch('/:id/reject', leaveController.rejectLeave);
+router.get('/balance', authenticate, allRoles, leaveController.getLeaveBalance);
+router.get('/', authenticate, allRoles, leaveController.getLeaveRequests);
+router.post('/', authenticate, allRoles, leaveController.createLeaveRequest);
+router.patch('/:id/approve', authenticate, adminHROrManager, leaveController.approveLeave);
+router.patch('/:id/reject', authenticate, adminHROrManager, leaveController.rejectLeave);
 
 export default router;

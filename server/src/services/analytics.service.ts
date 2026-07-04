@@ -14,7 +14,7 @@ export async function getWorkforceOverview() {
 
 export async function calculateAttendanceTrend(days: number): Promise<{ date: string; present: number; absent: number; late: number }[]> {
   // TODO[ANALYTICS]: Replace with real DB aggregation
-  const result = [];
+  const result: { date: string; present: number; absent: number; late: number }[] = [];
   for (let i = days - 1; i >= 0; i--) {
     const d = new Date();
     d.setDate(d.getDate() - i);
