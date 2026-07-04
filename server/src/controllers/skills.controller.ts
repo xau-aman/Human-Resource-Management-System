@@ -2,6 +2,20 @@ import { Request, Response, NextFunction } from 'express';
 import * as skillsService from '../services/skills.service';
 import { createResponse } from '../types/api.types';
 
+function parseRequiredSkills(value: unknown) {
+  if (!value) return [];
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
 export async function getSkills(_req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const skills = await skillsService.getSkills();
@@ -20,12 +34,11 @@ export async function getSkillsMatrix(_req: Request, res: Response, next: NextFu
   }
 }
 
-export async function getSkillGaps(req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function getSkillIntelligence(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const department = req.query.department as string | undefined;
-    const skill = req.query.skill as string | undefined;
-    const level = req.query.level as string | undefined;
-    const intelligence = await skillsService.getSkillIntelligence(department, skill, level);
+    const requiredSkills = parseRequiredSkills(req.query.requiredSkills);
+    const intelligence = await skillsService.getSkillIntelligence(department, requiredSkills);
     res.json(createResponse(intelligence));
   } catch (err) {
     next(err);
@@ -34,20 +47,17 @@ export async function getSkillGaps(req: Request, res: Response, next: NextFuncti
 
 export async function getEmployeeSkillProfile(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const employeeId = req.params.employeeId as string;
-    const profile = skillsService.getEmployeeSkillProfile(employeeId);
+    const profile = await skillsService.getEmployeeSkillProfile(req.params['employeeId'] as string);
     res.json(createResponse(profile));
   } catch (err) {
     next(err);
   }
 }
 
-export async function upsertEmployeeSkill(req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function addEmployeeSkill(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const employeeId = req.params.employeeId as string;
-    const { skillName, level } = req.body as { skillName: string; level: string };
-    const profile = await skillsService.upsertEmployeeSkill(employeeId, skillName, level);
-    res.json(createResponse(profile, 'Employee skill updated'));
+    const createdSkill = await skillsService.addEmployeeSkill(req.params['employeeId'] as string, req.body);
+    res.status(201).json(createResponse(createdSkill, 'Employee skill added'));
   } catch (err) {
     next(err);
   }

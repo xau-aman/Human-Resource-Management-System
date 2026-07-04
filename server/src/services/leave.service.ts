@@ -14,134 +14,111 @@ interface CreateLeaveInput {
   reason: string;
 }
 
-// Leave balance policy
-const LEAVE_BALANCE_POLICY: Record<string, number> = {
+interface LeaveBalanceSummary {
+  employeeId: string;
+  leaveType: string;
+  annualBalance: number;
+  usedDays: number;
+  remainingBalance: number;
+}
+
+type LeaveTypeKey = 'CASUAL' | 'SICK' | 'PAID' | 'UNPAID';
+
+const leaveInclude = {
+  employee: { select: { id: true, firstName: true, lastName: true, employeeId: true, department: { select: { name: true } } } },
+};
+
+const annualLeavePolicy: Record<LeaveTypeKey, number | null> = {
   CASUAL: 12,
   SICK: 10,
   PAID: 15,
-  UNPAID: Infinity, // Unlimited
+  UNPAID: null,
 };
 
-const leaveInclude = {
-  employee: { select: { id: true, firstName: true, lastName: true, employeeId: true, designation: true, employmentStatus: true, department: { select: { name: true } } } },
-};
+function normalizeLeaveType(leaveType: string): LeaveTypeKey {
+  const normalized = leaveType.toUpperCase();
+  if (normalized in annualLeavePolicy) {
+    return normalized as LeaveTypeKey;
+  }
 
-/**
- * Calculate number of days between two dates (inclusive of both start and end date)
- */
-export function calculateLeaveDays(startDate: Date | string, endDate: Date | string): number {
+  throw new AppError(`Unsupported leave type: ${leaveType}`, 400);
+}
+
+export function calculateLeaveDays(startDate: string | Date, endDate: string | Date): number {
   const start = new Date(startDate);
   const end = new Date(endDate);
-  const diffTime = Math.abs(end.getTime() - start.getTime());
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-  return diffDays;
-}
 
-/**
- * Get leave balance for an employee for a specific year
- */
-export async function getLeaveBalance(employeeId: string, year: number = new Date().getFullYear()) {
-  let balance = await prisma.leaveBalance.findUnique({
-    where: {
-      employeeId_year: {
-        employeeId,
-        year,
-      },
-    },
-  });
-
-  // Create balance if it doesn't exist
-  if (!balance) {
-    balance = await prisma.leaveBalance.create({
-      data: {
-        employeeId,
-        year,
-        casualUsed: 0,
-        sickUsed: 0,
-        paidUsed: 0,
-        unpaidUsed: 0,
-      },
-    });
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    throw new AppError('Invalid leave date range', 400);
   }
 
-  return {
-    casual: LEAVE_BALANCE_POLICY.CASUAL - balance.casualUsed,
-    sick: LEAVE_BALANCE_POLICY.SICK - balance.sickUsed,
-    paid: LEAVE_BALANCE_POLICY.PAID - balance.paidUsed,
-    unpaid: LEAVE_BALANCE_POLICY.UNPAID === Infinity ? Infinity : LEAVE_BALANCE_POLICY.UNPAID - balance.unpaidUsed,
-    used: {
-      casual: balance.casualUsed,
-      sick: balance.sickUsed,
-      paid: balance.paidUsed,
-      unpaid: balance.unpaidUsed,
+  const diffMs = end.getTime() - start.getTime();
+  if (diffMs < 0) {
+    throw new AppError('Start date must be before end date', 400);
+  }
+
+  return Math.floor(diffMs / 86_400_000) + 1;
+}
+
+export async function getLeaveBalance(employeeId: string, leaveType: string): Promise<LeaveBalanceSummary> {
+  const normalizedLeaveType = normalizeLeaveType(leaveType);
+  const annualBalance = annualLeavePolicy[normalizedLeaveType];
+
+  const approvedLeaves = await prisma.leaveRequest.findMany({
+    where: {
+      employeeId,
+      leaveType: normalizedLeaveType,
+      status: 'APPROVED',
     },
+    select: { startDate: true, endDate: true },
+  });
+
+  const usedDays = approvedLeaves.reduce((sum, current) => sum + calculateLeaveDays(current.startDate, current.endDate), 0);
+  const remainingBalance = annualBalance === null ? Number.POSITIVE_INFINITY : Math.max(0, annualBalance - usedDays);
+
+  return {
+    employeeId,
+    leaveType: normalizedLeaveType,
+    annualBalance: annualBalance ?? 0,
+    usedDays,
+    remainingBalance,
   };
 }
 
-/**
- * Validate leave request before creation
- */
-export async function validateLeaveRequest(data: CreateLeaveInput): Promise<{ valid: boolean; errors: string[] }> {
-  const errors: string[] = [];
+export async function validateLeaveRequest(data: { employeeId: string; leaveType: string; startDate: string; endDate: string }) {
+  const days = calculateLeaveDays(data.startDate, data.endDate);
+  if (days <= 0) {
+    throw new AppError('Leave request must span at least one day', 400);
+  }
 
-  // Get employee
   const employee = await prisma.employee.findUnique({ where: { id: data.employeeId } });
   if (!employee) {
-    errors.push('Employee not found');
-    return { valid: false, errors };
+    throw new AppError('Employee not found', 404);
   }
 
-  // Check if employee is active
   if (employee.employmentStatus !== 'ACTIVE') {
-    errors.push(`Employee is ${employee.employmentStatus.toLowerCase()}. Only active employees can request leave`);
+    throw new AppError('Only active employees can request leave', 400);
   }
 
-  // Parse dates
-  const startDate = new Date(data.startDate);
-  const endDate = new Date(data.endDate);
-
-  // Validate date range
-  if (startDate > endDate) {
-    errors.push('Start date must be before end date');
-  }
-
-  // Calculate leave days
-  const leaveDays = calculateLeaveDays(startDate, endDate);
-
-  // Check for overlapping leaves
-  const overlappingLeaves = await prisma.leaveRequest.findMany({
+  const existingLeave = await prisma.leaveRequest.findFirst({
     where: {
       employeeId: data.employeeId,
-      status: { in: ['APPROVED', 'PENDING'] },
-      OR: [
-        {
-          startDate: { lte: endDate },
-          endDate: { gte: startDate },
-        },
-      ],
+      status: { not: 'REJECTED' },
+      startDate: { lte: new Date(data.endDate) },
+      endDate: { gte: new Date(data.startDate) },
     },
   });
 
-  if (overlappingLeaves.length > 0) {
-    errors.push('Leave dates overlap with existing approved or pending leave requests');
+  if (existingLeave) {
+    throw new AppError('Leave request overlaps with an existing leave request', 400);
   }
 
-  // Check available balance
-  const balance = await getLeaveBalance(data.employeeId);
-  const leaveType = data.leaveType.toUpperCase();
-
-  if (leaveType === 'CASUAL' && balance.casual < leaveDays) {
-    errors.push(`Insufficient casual leave balance. Available: ${balance.casual}, Requested: ${leaveDays}`);
-  } else if (leaveType === 'SICK' && balance.sick < leaveDays) {
-    errors.push(`Insufficient sick leave balance. Available: ${balance.sick}, Requested: ${leaveDays}`);
-  } else if (leaveType === 'PAID' && balance.paid < leaveDays) {
-    errors.push(`Insufficient paid leave balance. Available: ${balance.paid}, Requested: ${leaveDays}`);
+  const balance = await getLeaveBalance(data.employeeId, data.leaveType);
+  if (balance.remainingBalance !== Number.POSITIVE_INFINITY && balance.remainingBalance < days) {
+    throw new AppError(`Insufficient ${data.leaveType.toLowerCase()} leave balance`, 400);
   }
 
-  return {
-    valid: errors.length === 0,
-    errors,
-  };
+  return { days, balance };
 }
 
 export async function getLeaveRequests({ status, employeeId }: GetLeaveParams) {
@@ -156,77 +133,42 @@ export async function getLeaveRequests({ status, employeeId }: GetLeaveParams) {
 }
 
 export async function createLeaveRequest(data: CreateLeaveInput) {
-  // Validate leave request
-  const validation = await validateLeaveRequest(data);
-  if (!validation.valid) {
-    throw new AppError(`Leave validation failed: ${validation.errors.join(', ')}`, 400);
-  }
-
-  const startDate = new Date(data.startDate);
-  const endDate = new Date(data.endDate);
+  await validateLeaveRequest(data);
 
   return prisma.leaveRequest.create({
     data: {
       employeeId: data.employeeId,
-      leaveType: data.leaveType.toUpperCase() as any,
-      startDate,
-      endDate,
+      leaveType: normalizeLeaveType(data.leaveType),
+      startDate: new Date(data.startDate),
+      endDate: new Date(data.endDate),
       reason: data.reason,
-      status: 'PENDING',
     },
     include: leaveInclude,
   });
 }
 
-export async function approveLeave(id: string, reviewedBy?: string) {
+export async function approveLeave(id: string, actorRole?: string) {
   const leave = await prisma.leaveRequest.findUnique({ where: { id } });
   if (!leave) throw new AppError('Leave request not found', 404);
+  if (leave.status !== 'PENDING') throw new AppError('Leave request is not pending', 400);
 
-  const startDate = leave.startDate;
-  const endDate = leave.endDate;
-  const leaveDays = calculateLeaveDays(startDate, endDate);
-  const leaveType = leave.leaveType.toLowerCase();
-  const year = startDate.getFullYear();
+  const normalizedRole = actorRole?.toUpperCase();
+  if (!normalizedRole || !['HR', 'ADMIN'].includes(normalizedRole)) {
+    throw new AppError('Only HR and ADMIN can approve leave requests', 403);
+  }
 
-  // Update leave balance
-  const updateData: Record<string, { increment: number }> = {};
-  updateData[`${leaveType}Used`] = { increment: leaveDays };
-
-  await prisma.leaveBalance.upsert({
-    where: { employeeId_year: { employeeId: leave.employeeId, year } },
-    create: {
-      employeeId: leave.employeeId,
-      year,
-      casualUsed: leaveType === 'casual' ? leaveDays : 0,
-      sickUsed: leaveType === 'sick' ? leaveDays : 0,
-      paidUsed: leaveType === 'paid' ? leaveDays : 0,
-      unpaidUsed: leaveType === 'unpaid' ? leaveDays : 0,
-    },
-    update: updateData,
-  });
-
-  return prisma.leaveRequest.update({
-    where: { id },
-    data: {
-      status: 'APPROVED',
-      reviewedAt: new Date(),
-      reviewedBy: reviewedBy || undefined,
-    },
-    include: leaveInclude,
-  });
+  return prisma.leaveRequest.update({ where: { id }, data: { status: 'APPROVED', reviewedAt: new Date() }, include: leaveInclude });
 }
 
-export async function rejectLeave(id: string, reviewedBy?: string) {
+export async function rejectLeave(id: string, actorRole?: string) {
   const leave = await prisma.leaveRequest.findUnique({ where: { id } });
   if (!leave) throw new AppError('Leave request not found', 404);
+  if (leave.status !== 'PENDING') throw new AppError('Leave request is not pending', 400);
 
-  return prisma.leaveRequest.update({
-    where: { id },
-    data: {
-      status: 'REJECTED',
-      reviewedAt: new Date(),
-      reviewedBy: reviewedBy || undefined,
-    },
-    include: leaveInclude,
-  });
+  const normalizedRole = actorRole?.toUpperCase();
+  if (!normalizedRole || !['HR', 'ADMIN'].includes(normalizedRole)) {
+    throw new AppError('Only HR and ADMIN can reject leave requests', 403);
+  }
+
+  return prisma.leaveRequest.update({ where: { id }, data: { status: 'REJECTED', reviewedAt: new Date() }, include: leaveInclude });
 }

@@ -1,39 +1,86 @@
-import React, { createContext, useContext, useState, type ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import {
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged,
+  type User as FirebaseUser,
+} from 'firebase/auth';
+import { firebaseAuth, googleProvider } from '../config/firebase';
+import { api, setToken, clearToken } from '../config/api';
 import type { AuthUser, UserRole } from '../types';
 
 interface AuthContextValue {
   user: AuthUser | null;
-  token: string | null;
-  login: (email: string, _password: string) => Promise<void>;
-  logout: () => void;
+  loading: boolean;
+  loginWithEmail: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
+  logout: () => Promise<void>;
   isAuthenticated: boolean;
   hasRole: (...roles: UserRole[]) => boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-// TODO[CORE]: Replace mock auth with real API call
-const MOCK_USER: AuthUser = { id: 'mock-1', email: 'admin@workzen.com', role: 'ADMIN' };
+interface ApiAuthResponse {
+  data: { token: string; user: AuthUser };
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(MOCK_USER);
-  const [token, setToken] = useState<string | null>('mock-token');
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const login = async (_email: string, _password: string) => {
-    // TODO[CORE]: Call POST /api/v1/auth/login
-    setUser(MOCK_USER);
-    setToken('mock-token');
+  // On mount — restore session from localStorage token
+  useEffect(() => {
+    const token = localStorage.getItem('workzen_token');
+    if (token) {
+      api.get<{ data: AuthUser }>('/auth/me')
+        .then(res => setUser(res.data))
+        .catch(() => clearToken())
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
+    }
+  }, []);
+
+  const loginWithEmail = async (email: string, password: string) => {
+    try {
+      // Try Firebase first
+      await signInWithEmailAndPassword(firebaseAuth, email, password);
+      const fbUser = firebaseAuth.currentUser!;
+      const fbToken = await fbUser.getIdToken();
+      const res = await api.post<ApiAuthResponse>('/auth/firebase', { firebaseUid: fbUser.uid, email });
+      setToken(res.data.token);
+      setUser(res.data.user);
+    } catch {
+      // Fallback to local JWT auth
+      const res = await api.post<ApiAuthResponse>('/auth/login', { email, password });
+      setToken(res.data.token);
+      setUser(res.data.user);
+    }
   };
 
-  const logout = () => {
+  const loginWithGoogle = async () => {
+    const result = await signInWithPopup(firebaseAuth, googleProvider);
+    const fbToken = await result.user.getIdToken();
+    const res = await api.post<ApiAuthResponse>('/auth/firebase', {
+      firebaseUid: result.user.uid,
+      email: result.user.email,
+    });
+    setToken(res.data.token);
+    setUser(res.data.user);
+  };
+
+  const logout = async () => {
+    await signOut(firebaseAuth).catch(() => {});
+    clearToken();
     setUser(null);
-    setToken(null);
   };
 
   const hasRole = (...roles: UserRole[]) => !!user && roles.includes(user.role);
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated: !!user, hasRole }}>
+    <AuthContext.Provider value={{ user, loading, loginWithEmail, loginWithGoogle, logout, isAuthenticated: !!user, hasRole }}>
       {children}
     </AuthContext.Provider>
   );
