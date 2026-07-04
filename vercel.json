@@ -1,22 +1,9 @@
 {
   "version": 2,
-  "installCommand": "npm install && cd server && npm install && npx prisma generate && cd ../client && npm install",
-  "builds": [
-    {
-      "src": "client/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    },
-    {
-      "src": "api/index.ts",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": ["server/**"]
-      }
-    }
-  ],
+  "buildCommand": "cd client && npm install && npm run vercel-build",
+  "installCommand": "npm install && cd server && npm install && npx prisma generate",
+  "outputDirectory": "client/dist",
+  "framework": null,
   "routes": [
     {
       "src": "/api/(.*)",
@@ -27,7 +14,12 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/client/index.html"
+      "dest": "/index.html"
     }
-  ]
+  ],
+  "functions": {
+    "api/index.ts": {
+      "includeFiles": "server/**"
+    }
+  }
 }
