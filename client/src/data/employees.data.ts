@@ -1,0 +1,16 @@
+import type { Employee } from '../types';
+
+export const mockEmployees: Employee[] = [
+  { id: '1', employeeId: 'WZ1001', firstName: 'Arjun', lastName: 'Sharma', email: 'arjun.sharma@workzen.com', phone: '+91 9812345678', department: { id: 'd1', name: 'Engineering' }, designation: 'Engineering Manager', joiningDate: '2021-03-15', employmentStatus: 'ACTIVE' },
+  { id: '2', employeeId: 'WZ1002', firstName: 'Priya', lastName: 'Patel', email: 'priya.patel@workzen.com', phone: '+91 9823456789', department: { id: 'd1', name: 'Engineering' }, designation: 'Senior Frontend Developer', joiningDate: '2021-07-01', employmentStatus: 'ACTIVE' },
+  { id: '3', employeeId: 'WZ1003', firstName: 'Rahul', lastName: 'Verma', email: 'rahul.verma@workzen.com', phone: '+91 9834567890', department: { id: 'd1', name: 'Engineering' }, designation: 'Backend Developer', joiningDate: '2022-01-10', employmentStatus: 'ACTIVE' },
+  { id: '4', employeeId: 'WZ1004', firstName: 'Sneha', lastName: 'Iyer', email: 'sneha.iyer@workzen.com', phone: '+91 9845678901', department: { id: 'd1', name: 'Engineering' }, designation: 'Full Stack Developer', joiningDate: '2022-06-20', employmentStatus: 'ACTIVE' },
+  { id: '5', employeeId: 'WZ1005', firstName: 'Vikram', lastName: 'Nair', email: 'vikram.nair@workzen.com', phone: '+91 9856789012', department: { id: 'd1', name: 'Engineering' }, designation: 'DevOps Engineer', joiningDate: '2021-11-05', employmentStatus: 'ON_LEAVE' },
+  { id: '6', employeeId: 'WZ1006', firstName: 'Ananya', lastName: 'Reddy', email: 'ananya.reddy@workzen.com', phone: '+91 9867890123', department: { id: 'd2', name: 'Design' }, designation: 'Lead Designer', joiningDate: '2021-04-12', employmentStatus: 'ACTIVE' },
+  { id: '7', employeeId: 'WZ1007', firstName: 'Karan', lastName: 'Mehta', email: 'karan.mehta@workzen.com', phone: '+91 9878901234', department: { id: 'd2', name: 'Design' }, designation: 'UI/UX Designer', joiningDate: '2022-03-08', employmentStatus: 'ACTIVE' },
+  { id: '8', employeeId: 'WZ1008', firstName: 'Divya', lastName: 'Singh', email: 'divya.singh@workzen.com', phone: '+91 9889012345', department: { id: 'd3', name: 'Marketing' }, designation: 'Marketing Manager', joiningDate: '2021-09-01', employmentStatus: 'ACTIVE' },
+  { id: '9', employeeId: 'WZ1009', firstName: 'Rohan', lastName: 'Gupta', email: 'rohan.gupta@workzen.com', phone: '+91 9890123456', department: { id: 'd3', name: 'Marketing' }, designation: 'Content Strategist', joiningDate: '2022-08-15', employmentStatus: 'ACTIVE' },
+  { id: '10', employeeId: 'WZ1010', firstName: 'Meera', lastName: 'Krishnan', email: 'meera.krishnan@workzen.com', phone: '+91 9801234567', department: { id: 'd3', name: 'Marketing' }, designation: 'Growth Analyst', joiningDate: '2023-01-20', employmentStatus: 'ACTIVE' },
+  { id: '11', employeeId: 'WZ1011', firstName: 'Aditya', lastName: 'Joshi', email: 'aditya.joshi@workzen.com', phone: '+91 9812340001', department: { id: 'd4', name: 'Human Resources' }, designation: 'HR Manager', joiningDate: '2021-02-01', employmentStatus: 'ACTIVE' },
+  { id: '12', employeeId: 'WZ1012', firstName: 'Pooja', lastName: 'Desai', email: 'pooja.desai@workzen.com', phone: '+91 9823450002', department: { id: 'd4', name: 'Human Resources' }, designation: 'HR Executive', joiningDate: '2022-05-10', employmentStatus: 'ACTIVE' },
+];

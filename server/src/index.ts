@@ -1,0 +1,43 @@
+import express from 'express';
+import cors from 'cors';
+import { config } from './config/env';
+import { requestLogger } from './middleware/requestLogger';
+import { errorHandler } from './middleware/errorHandler';
+
+import authRoutes from './routes/auth.routes';
+import employeeRoutes from './routes/employee.routes';
+import attendanceRoutes from './routes/attendance.routes';
+import leaveRoutes from './routes/leave.routes';
+import performanceRoutes from './routes/performance.routes';
+import skillsRoutes from './routes/skills.routes';
+import analyticsRoutes from './routes/analytics.routes';
+import insightsRoutes from './routes/insights.routes';
+
+const app = express();
+
+app.use(cors({ origin: config.clientUrl, credentials: true }));
+app.use(express.json());
+app.use(requestLogger);
+
+// Health check
+app.get('/api/v1/health', (_req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString(), environment: config.nodeEnv });
+});
+
+// API routes
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/employees', employeeRoutes);
+app.use('/api/v1/attendance', attendanceRoutes);
+app.use('/api/v1/leaves', leaveRoutes);
+app.use('/api/v1/performance', performanceRoutes);
+app.use('/api/v1/skills', skillsRoutes);
+app.use('/api/v1/analytics', analyticsRoutes);
+app.use('/api/v1/insights', insightsRoutes);
+
+app.use(errorHandler);
+
+app.listen(config.port, () => {
+  console.log(`🚀 WorkZen HRMS API running on port ${config.port} [${config.nodeEnv}]`);
+});
+
+export default app;
