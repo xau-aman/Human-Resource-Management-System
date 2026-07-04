@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "buildCommand": "cd client && npm install && npm run vercel-build",
-  "installCommand": "npm install && cd server && npm install && npx prisma generate",
+  "installCommand": "npm install && cd server && npm install && npx prisma generate && cd ../client && npm install",
+  "buildCommand": "cd client && npx vite build",
   "outputDirectory": "client/dist",
   "framework": null,
   "routes": [
