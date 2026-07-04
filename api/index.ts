@@ -1,11 +1,5 @@
-import path from 'path';
-import dotenv from 'dotenv';
-dotenv.config({ path: path.resolve(__dirname, '../server/.env') });
-
 import express from 'express';
 import cors from 'cors';
-import { config } from '../server/src/config/env';
-import { getFirebaseAdmin } from '../server/src/config/firebase';
 import { errorHandler } from '../server/src/middleware/errorHandler';
 
 import authRoutes from '../server/src/routes/auth.routes';
@@ -20,7 +14,12 @@ import exportRoutes from '../server/src/routes/export.routes';
 import payslipRoutes from '../server/src/routes/payslip.routes';
 import salaryRoutes from '../server/src/routes/salary.routes';
 
-getFirebaseAdmin();
+try {
+  const { getFirebaseAdmin } = require('../server/src/config/firebase');
+  getFirebaseAdmin();
+} catch (e) {
+  console.warn('Firebase init skipped:', e);
+}
 
 const app = express();
 
@@ -28,7 +27,7 @@ app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
 app.get('/api/v1/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString(), environment: config.nodeEnv });
+  res.json({ status: 'ok', timestamp: new Date().toISOString(), env: process.env.NODE_ENV, hasDb: !!process.env.DATABASE_URL });
 });
 
 app.use('/api/v1/auth', authRoutes);
