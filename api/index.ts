@@ -14,6 +14,7 @@ import analyticsRoutes from '../server/src/routes/analytics.routes';
 import insightsRoutes from '../server/src/routes/insights.routes';
 import exportRoutes from '../server/src/routes/export.routes';
 import payslipRoutes from '../server/src/routes/payslip.routes';
+import salaryRoutes from '../server/src/routes/salary.routes';
 
 getFirebaseAdmin();
 
@@ -36,6 +37,7 @@ app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/insights', insightsRoutes);
 app.use('/api/v1/export', exportRoutes);
 app.use('/api/v1/payslip', payslipRoutes);
+app.use('/api/v1/employees', salaryRoutes);
 
 app.use('/api', (_req, res) => {
   res.status(404).json({ success: false, message: 'Route not found', data: null, timestamp: new Date().toISOString() });

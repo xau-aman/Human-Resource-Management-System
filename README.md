@@ -1,52 +1,98 @@
 # WorkZen HRMS 🏢
 
-> **Smarter People. Better Decisions.**
+> **Every workday, perfectly aligned.**
 
-A full-stack Human Resource Management System with **Neobrutalism UI**, role-based access control, real-time attendance tracking, AI-powered workforce insights, and CSV data export.
+A production-grade Human Resource Management System with a **weighted performance scoring engine**, **configurable salary structures**, **real-time attendance tracking**, **AI-powered workforce insights**, and a **Neobrutalism UI**.
 
-![Tech Stack](https://img.shields.io/badge/React-19-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue) ![Express](https://img.shields.io/badge/Express-4-green) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue) ![Prisma](https://img.shields.io/badge/Prisma-6-purple) ![Tailwind](https://img.shields.io/badge/Tailwind-4-cyan)
+![React](https://img.shields.io/badge/React-19-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5/6-blue) ![Express](https://img.shields.io/badge/Express-4-green) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue) ![Prisma](https://img.shields.io/badge/Prisma-6-purple) ![Tailwind](https://img.shields.io/badge/Tailwind-4-cyan) ![Vite](https://img.shields.io/badge/Vite-8-yellow)
+
+---
+
+## 🧠 Core Workforce Flow
+
+```
+EMPLOYEE → SALARY CONFIGURATION → ATTENDANCE → TIME OFF
+    ↓              ↓                    ↓           ↓
+PAYABLE DAYS ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ←
+    ↓
+PERFORMANCE (weighted: Tasks 30% + Goals 25% + Rating 20% + Attendance 15% + Skills 10%)
+    ↓
+PAYROLL & BONUS RECOMMENDATION
+```
+
+Modules are **interconnected** — attendance affects payable days, unpaid leave reduces payable days, attendance consistency feeds into performance score, and performance rating drives bonus recommendations.
 
 ---
 
 ## ✨ Features
 
+### 💰 Salary Engine
+- Configurable salary components (Basic, HRA, Standard Allowance, Performance Bonus, LTA, Fixed Allowance)
+- Calculation types: PERCENTAGE, FIXED_AMOUNT, REMAINDER
+- Automatic yearly wage calculation
+- Statutory deductions: Employee PF (12% of Basic), Employer PF, Professional Tax (₹200)
+- Net salary estimation
+- Validation: components cannot exceed monthly wage
+- Indian Rupee formatting (₹1,20,000)
+
+### 📊 Performance Scoring Engine
+- **Weighted scoring model** with 5 measurable inputs
+- **Explainable breakdown** — user sees exactly WHY they got their score
+- Normalized inputs (0-100 scale) with division-by-zero protection
+- Ratings: EXCEPTIONAL (90+), STRONG (75+), GOOD (60+), NEEDS_IMPROVEMENT (40+), CRITICAL (<40)
+- Performance trend across review periods (Q1/Q2/Q3)
+- Organization summary (avg score, top performer, needs attention count)
+- **Performance bonus recommendation** based on rating multiplier
+
+### ⏰ Attendance System
+- Clock-in/out with automatic late detection (configurable grace period)
+- Working hours calculation with break time deduction
+- Extra hours tracking
+- Status rules: PRESENT, LATE, HALF_DAY, ABSENT
+- Monthly summary with attendance rate
+- **Attendance consistency score** feeds into performance evaluation
+- **Payable days calculation**: present + paid leave + (half days × 0.5)
+
+### 🏖️ Time Off / Leave Management
+- Leave types: Casual (12), Sick (10), Paid (15), Unpaid (unlimited)
+- Overlap validation, balance checking, date validation
+- Approval flow: PENDING → APPROVED/REJECTED (Admin/HR/Manager only)
+- Duration calculation
+- **Payroll connection**: approved paid leave = payable, unpaid = not payable
+
+### 🔐 Centralized Permissions
+- Permission-based access control (not just role checks)
+- 13 granular permissions mapped to 4 roles
+- Both frontend UI hiding AND backend authorization
+- Salary info restricted to ADMIN/HR only (API-level enforcement)
+
 ### 🎨 Neobrutalism Design System
-- Black background with white rounded content areas
+- Black background, white rounded content areas
 - Pink sidebar with thick black borders and offset shadows
-- Mulberry (#C54B8C) accent color throughout
-- Uppercase bold typography with wide tracking
+- Mulberry (#C54B8C) accent, uppercase bold typography
 - Custom "W" logo component
 
-### 👥 Role-Based Access Control
+---
+
+## 👥 Role-Based Access Matrix
+
 | Feature | Admin | HR | Manager | Employee |
 |---------|:-----:|:--:|:-------:|:--------:|
-| Dashboard (full stats) | ✅ | ✅ | ❌ | ❌ |
+| Dashboard (org stats) | ✅ | ✅ | ❌ | ❌ |
 | Dashboard (personal) | ❌ | ❌ | ✅ | ✅ |
-| Employee Management | ✅ | ✅ | ❌ | ❌ |
+| Employee Management | ✅ | ✅ | ✅ (view) | ❌ |
+| **Salary View/Edit** | ✅ | ✅ | ❌ | ❌ |
+| **Payroll Management** | ✅ | ✅ | ❌ | ❌ |
+| Payslip (own) | ✅ | ✅ | ✅ | ✅ |
 | Attendance (all) | ✅ | ✅ | ✅ | ❌ |
 | Attendance (own) | ✅ | ✅ | ✅ | ✅ |
 | Leave Approve/Reject | ✅ | ✅ | ✅ | ❌ |
 | Leave Apply | ✅ | ✅ | ✅ | ✅ |
-| Performance Reviews | ✅ | ✅ | ✅ | ❌ |
+| Performance (all) | ✅ | ✅ | ✅ | ❌ |
 | Skills Matrix | ✅ | ✅ | ✅ | ❌ |
 | Analytics | ✅ | ✅ | ❌ | ❌ |
 | AI Insights | ✅ | ✅ | ❌ | ❌ |
-| Payslip | ❌ | ❌ | ❌ | ✅ |
 | CSV Export | ✅ | ✅ | ❌ | ❌ |
-| Settings | ✅ | ✅ | ✅ | ✅ |
-
-### 📊 Core Modules
-- **Dashboard** — Role-based stats, charts, pending leaves, recent activity
-- **Employees** — Full CRUD, search, filter by department/status
-- **Attendance** — Clock-in/out, late detection (after 10am), daily summary
-- **Leave Management** — Apply, approve/reject, balance tracking, validation
-- **Performance** — Quarterly reviews, scoring algorithm, manager ratings
-- **Skills Matrix** — Skill catalog, proficiency levels, gap analysis
-- **Analytics** — Workforce overview, attendance trends, department performance
-- **AI Insights** — Gemini-powered workforce analysis and Q&A
-- **Payslip** — Salary breakdown (basic, HRA, DA, PF, tax deductions)
-- **CSV Export** — Download employees, attendance, leaves, performance data
-- **Settings** — Company info, notifications, security, data export
 
 ---
 
@@ -62,9 +108,9 @@ A full-stack Human Resource Management System with **Neobrutalism UI**, role-bas
 | Backend | Node.js, Express 4, TypeScript 5 |
 | Database | PostgreSQL 16 |
 | ORM | Prisma 6 |
-| Auth | JWT (jsonwebtoken) |
+| Auth | JWT (jsonwebtoken) + Firebase Admin (fallback) |
 | AI | Google Gemini 2.5 Flash |
-| Firebase | Admin SDK (optional token verification) |
+| Deployment | Vercel (static + serverless) |
 
 ---
 
@@ -72,7 +118,7 @@ A full-stack Human Resource Management System with **Neobrutalism UI**, role-bas
 
 ### Prerequisites
 - Node.js 18+
-- PostgreSQL 14+ (local or hosted like [Neon](https://neon.tech))
+- PostgreSQL 14+ (local or [Neon](https://neon.tech) free tier)
 - npm
 
 ### 1. Clone & Install
@@ -81,50 +127,41 @@ A full-stack Human Resource Management System with **Neobrutalism UI**, role-bas
 git clone https://github.com/xau-aman/Human-Resource-Management-System.git
 cd Human-Resource-Management-System/workzen-hrms
 
-# Install server dependencies
+# Server
 cd server && npm install
 
-# Install client dependencies
+# Client
 cd ../client && npm install
 ```
 
 ### 2. Configure Environment
 
 ```bash
-# Server environment
 cd ../server
 cp ../.env.example .env
 # Edit .env with your PostgreSQL URL and API keys
 ```
 
-**Required environment variables:**
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@localhost:5432/workzen_hrms` |
-| `JWT_SECRET` | Secret for JWT signing (min 32 chars) | `workzen-super-secret-jwt-key-32chars-min` |
-| `JWT_EXPIRES_IN` | Token expiry | `7d` |
-| `GEMINI_API_KEY` | Google Gemini API key | `AIza...` |
-| `FIREBASE_PROJECT_ID` | Firebase project ID | `hrms-3e302` |
-| `FIREBASE_CLIENT_EMAIL` | Firebase admin email | `firebase-adminsdk-...` |
-| `FIREBASE_PRIVATE_KEY` | Firebase private key | `-----BEGIN PRIVATE KEY-----\n...` |
+| Variable | Description |
+|----------|-------------|
+| `DATABASE_URL` | PostgreSQL connection string |
+| `JWT_SECRET` | JWT signing secret (min 32 chars) |
+| `GEMINI_API_KEY` | Google Gemini API key |
+| `FIREBASE_PROJECT_ID` | Firebase project ID |
+| `FIREBASE_CLIENT_EMAIL` | Firebase admin service account |
+| `FIREBASE_PRIVATE_KEY` | Firebase private key |
 
-**Client environment** (`client/.env`):
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `VITE_API_URL` | Backend API URL | `http://localhost:5000/api/v1` |
+Client (`client/.env`):
+```
+VITE_API_URL=http://localhost:5000/api/v1
+```
 
 ### 3. Database Setup
 
 ```bash
 cd server
-
-# Generate Prisma client
 npx prisma generate
-
-# Run migrations
 npx prisma migrate dev
-
-# Seed with sample data (12 employees, 4 departments, attendance, leaves, etc.)
 npx tsx prisma/seed.ts
 ```
 
@@ -145,7 +182,6 @@ cd client && npm run dev
 | Admin | `admin@workzen.com` | `admin123` |
 | HR | `hr@workzen.com` | `admin123` |
 | Employee | `priya.patel@workzen.com` | `emp123` |
-| Employee | `rahul.verma@workzen.com` | `emp123` |
 
 ---
 
@@ -153,52 +189,44 @@ cd client && npm run dev
 
 ```
 workzen-hrms/
-├── client/                    # React Frontend
+├── client/                     # React Frontend
 │   ├── src/
-│   │   ├── components/
-│   │   │   ├── ui/            # Design system (Button, Card, Badge, etc.)
-│   │   │   └── layout/        # AppLayout, Sidebar, Topbar
-│   │   ├── pages/
-│   │   │   ├── auth/          # LoginPage
-│   │   │   ├── dashboard/     # DashboardPage (role-based)
-│   │   │   ├── employees/     # List, Profile, Add
-│   │   │   ├── attendance/    # Clock-in/out, history
-│   │   │   ├── leave/         # Apply, approve/reject
-│   │   │   ├── performance/   # Reviews, scores
-│   │   │   ├── payslip/       # Salary breakdown
-│   │   │   ├── skills/        # Skills matrix
-│   │   │   ├── analytics/     # Charts, trends
-│   │   │   ├── ai-insights/   # Gemini AI Q&A
-│   │   │   └── settings/      # Config, export
-│   │   ├── services/          # API service layer
-│   │   ├── context/           # AuthContext (JWT)
-│   │   ├── config/            # api.ts helper
-│   │   ├── types/             # TypeScript interfaces
-│   │   └── index.css          # Neobrutalism design system
-│   ├── .env                   # Client env vars
-│   └── .env.production        # Production env (VITE_API_URL=/api/v1)
+│   │   ├── components/ui/      # Design system (Button, Card, Badge, Table, Modal...)
+│   │   ├── components/layout/  # AppLayout, Sidebar, Topbar
+│   │   ├── pages/              # All page components
+│   │   ├── services/           # API service layer (salary, performance, attendance...)
+│   │   ├── utils/              # permissions.ts
+│   │   ├── context/            # AuthContext (JWT)
+│   │   ├── config/             # api.ts (fetch wrapper)
+│   │   └── types/              # TypeScript interfaces
+│   └── .env.production         # Production: VITE_API_URL=/api/v1
 │
-├── server/                    # Express Backend
+├── server/                     # Express Backend
 │   ├── src/
-│   │   ├── routes/            # Express route definitions
-│   │   ├── controllers/       # Request/response handlers
-│   │   ├── services/          # Business logic
-│   │   ├── middleware/        # auth, errorHandler, requestLogger
-│   │   ├── config/            # env, prisma, firebase
-│   │   ├── types/             # API response types
-│   │   └── utils/             # AppError
-│   ├── prisma/
-│   │   ├── schema.prisma      # Database schema
-│   │   ├── seed.ts            # Sample data seeder
-│   │   └── migrations/        # SQL migrations
-│   └── .env                   # Server env vars
+│   │   ├── routes/             # salary, performance, attendance, leave, export, payslip...
+│   │   ├── controllers/        # Request/response handlers
+│   │   ├── services/           # Business logic (performance scoring, leave validation...)
+│   │   ├── utils/              # salary.ts, performance.ts, attendance.ts, permissions.ts
+│   │   ├── middleware/         # auth (JWT+Firebase), errorHandler, requestLogger
+│   │   └── config/             # env, prisma, firebase
+│   └── prisma/
+│       ├── schema.prisma       # Full schema (18 models, 8 enums)
+│       ├── seed.ts             # Comprehensive seed data
+│       └── migrations/         # SQL migrations
 │
-├── api/                       # Vercel serverless function
-│   └── index.ts               # Express app wrapper
-├── docs/                      # Documentation
-├── vercel.json                # Vercel deployment config
-├── deploy.sh                  # Auto-deploy script
-└── package.json               # Root deps for Vercel
+├── api/index.ts                # Vercel serverless function (wraps Express)
+├── vercel.json                 # Vercel deployment config
+├── deploy.sh                   # Auto-deploy script (sets env vars + deploys)
+├── docs/                       # Full documentation
+│   ├── PERFORMANCE_SCORING.md  # Scoring weights, formula, ratings, bonus
+│   ├── SALARY_CALCULATIONS.md  # Components, deductions, net salary
+│   ├── ATTENDANCE_RULES.md     # Status rules, payable days, consistency
+│   ├── TIME_OFF_POLICY.md      # Leave types, validation, approval flow
+│   ├── ARCHITECTURE.md         # System architecture
+│   ├── API_CONTRACTS.md        # All API endpoints
+│   ├── DATABASE_SCHEMA.md      # Models, relations, enums
+│   └── DEVELOPMENT_GUIDE.md    # Setup, workflow, conventions
+└── package.json                # Root deps for Vercel serverless
 ```
 
 ---
@@ -208,211 +236,190 @@ workzen-hrms/
 Base URL: `/api/v1`
 
 ### Auth
-| Method | Endpoint | Description | Access |
-|--------|----------|-------------|--------|
-| POST | `/auth/login` | Login with email/password | Public |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/auth/login` | Login (returns JWT) |
+| POST | `/auth/register` | Register new user |
+| GET | `/auth/me` | Get current user |
 
 ### Employees
 | Method | Endpoint | Description | Access |
 |--------|----------|-------------|--------|
-| GET | `/employees` | List all employees | All roles |
-| GET | `/employees/:id` | Get employee by ID | All roles |
-| POST | `/employees` | Create employee | Admin, HR |
-| PUT | `/employees/:id` | Update employee | Admin, HR |
-| DELETE | `/employees/:id` | Soft delete (terminate) | Admin, HR |
+| GET | `/employees/departments` | List departments | All |
+| GET | `/employees` | List employees | All |
+| GET | `/employees/:id` | Get employee detail | All |
+| POST | `/employees` | Create employee | Admin/HR |
+| PUT | `/employees/:id` | Update employee | Admin/HR |
+| DELETE | `/employees/:id` | Terminate employee | Admin/HR |
+
+### Salary (Admin/HR only)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/employees/:id/salary` | Get salary structure + breakdown |
+| GET | `/employees/:id/salary/breakdown` | Get calculated breakdown |
+| PUT | `/employees/:id/salary` | Update salary (auto-creates components) |
 
 ### Attendance
-| Method | Endpoint | Description | Access |
-|--------|----------|-------------|--------|
-| GET | `/attendance` | Get all attendance records | All roles |
-| GET | `/attendance/me` | Get own attendance | All roles |
-| GET | `/attendance/summary` | Daily summary stats | All roles |
-| POST | `/attendance/clock-in` | Clock in | All roles |
-| POST | `/attendance/clock-out` | Clock out | All roles |
-| POST | `/attendance` | Create attendance record | All roles |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/attendance` | All records |
+| GET | `/attendance/me` | Own records |
+| GET | `/attendance/summary` | Daily summary |
+| POST | `/attendance/clock-in` | Clock in |
+| POST | `/attendance/clock-out` | Clock out |
 
 ### Leave
-| Method | Endpoint | Description | Access |
-|--------|----------|-------------|--------|
-| GET | `/leaves` | Get all leave requests | All roles |
-| GET | `/leaves/me` | Get own leave requests | All roles |
-| GET | `/leaves/balance` | Get leave balance | All roles |
-| POST | `/leaves` | Apply for leave | All roles |
-| PATCH | `/leaves/:id/approve` | Approve leave | Admin, HR, Manager |
-| PATCH | `/leaves/:id/reject` | Reject leave | Admin, HR, Manager |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/leaves` | All requests |
+| GET | `/leaves/me` | Own requests |
+| GET | `/leaves/balance` | Leave balance |
+| POST | `/leaves` | Apply leave |
+| PATCH | `/leaves/:id/approve` | Approve (Admin/HR/Manager) |
+| PATCH | `/leaves/:id/reject` | Reject (Admin/HR/Manager) |
 
 ### Performance
-| Method | Endpoint | Description | Access |
-|--------|----------|-------------|--------|
-| GET | `/performance` | Get all reviews | All roles |
-| GET | `/performance/:employeeId` | Get employee reviews | All roles |
-
-### Skills
-| Method | Endpoint | Description | Access |
-|--------|----------|-------------|--------|
-| GET | `/skills` | Get all skills | All roles |
-| GET | `/skills/matrix` | Get skills matrix | All roles |
-
-### Analytics
-| Method | Endpoint | Description | Access |
-|--------|----------|-------------|--------|
-| GET | `/analytics/overview` | Workforce overview | All roles |
-| GET | `/analytics/attendance-trend` | Attendance trend | All roles |
-| GET | `/analytics/department-performance` | Department stats | All roles |
-
-### AI Insights
-| Method | Endpoint | Description | Access |
-|--------|----------|-------------|--------|
-| GET | `/insights` | Get active insights | All roles |
-| POST | `/insights/ask` | Ask AI a question | All roles |
-
-### Payslip
-| Method | Endpoint | Description | Access |
-|--------|----------|-------------|--------|
-| GET | `/payslip/me` | Get own salary breakdown | All roles |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/performance` | All reviews (with calculated scores) |
+| GET | `/performance/summary` | Org summary (avg, top, needs attention) |
+| GET | `/performance/trend` | Score trend over periods |
+| GET | `/performance/top-performers` | Top N performers |
+| GET | `/performance/employee/:id` | Employee review history |
 
 ### Export (CSV)
-| Method | Endpoint | Description | Access |
-|--------|----------|-------------|--------|
-| GET | `/export/employees` | Export employees CSV | Admin, HR |
-| GET | `/export/attendance` | Export attendance CSV | Admin, HR |
-| GET | `/export/leaves` | Export leaves CSV | Admin, HR |
-| GET | `/export/performance` | Export performance CSV | Admin, HR |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/export/employees` | Employees CSV |
+| GET | `/export/attendance` | Attendance CSV |
+| GET | `/export/leaves` | Leaves CSV |
+| GET | `/export/performance` | Performance CSV |
+
+### Payslip & AI
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/payslip/me` | Own salary breakdown |
+| GET | `/insights` | Workforce insights |
+| POST | `/insights/ask` | Ask AI question |
 
 ---
 
-## 🚢 Deployment (Vercel)
+## 🚢 Vercel Deployment
 
-### Automatic Deployment
+### One-Command Deploy
 
 ```bash
-# Make sure you're logged into Vercel CLI
-npm i -g vercel
-vercel login
-
-# Run the deploy script (sets env vars + deploys)
 chmod +x deploy.sh
 ./deploy.sh
 ```
 
-### Manual Deployment
+This script:
+1. Reads env vars from `server/.env`
+2. Pushes them to Vercel via CLI
+3. Deploys to production
 
-1. **Set up hosted PostgreSQL** (free tier):
-   - [Neon](https://neon.tech) — recommended
-   - [Supabase](https://supabase.com)
-   
-2. **Run migrations on production DB:**
+### Manual Steps
+
+1. Create free PostgreSQL on [Neon](https://neon.tech)
+2. Run migrations:
    ```bash
-   DATABASE_URL="your-production-url" npx prisma migrate deploy --schema=server/prisma/schema.prisma
+   DATABASE_URL="neon-url" npx prisma migrate deploy --schema=server/prisma/schema.prisma
    ```
-
-3. **Seed production DB (optional):**
+3. Seed (optional):
    ```bash
-   DATABASE_URL="your-production-url" npx tsx server/prisma/seed.ts
+   DATABASE_URL="neon-url" npx tsx server/prisma/seed.ts
    ```
-
-4. **Deploy to Vercel:**
+4. Deploy:
    ```bash
    vercel --prod
    ```
-
-5. **Set environment variables on Vercel:**
+5. Set env vars:
    ```bash
    vercel env add DATABASE_URL production
    vercel env add JWT_SECRET production
    vercel env add GEMINI_API_KEY production
-   vercel env add FIREBASE_PROJECT_ID production
-   vercel env add FIREBASE_CLIENT_EMAIL production
-   vercel env add FIREBASE_PRIVATE_KEY production
    ```
 
-### Vercel Project Structure
-- **Client** → Built as static site (Vite build → `client/dist/`)
-- **Server** → Runs as serverless function (`api/index.ts`)
-- **Routing** → `/api/*` → serverless function, `/*` → static SPA
-
----
-
-## 🎨 Design System
-
-### Neobrutalism Style
-```css
-/* Core classes */
-.neo-card      → white bg, border-3 black, shadow-[6px_6px_0px_0px_rgba(0,0,0,1)], rounded-2xl
-.btn-neo       → Mulberry bg, white text, rounded-full, uppercase, shadow offset
-.btn-neo-secondary → white bg, black text, border-2 black
-.input-neo     → white bg, border-2 black, rounded-xl, focus:shadow offset
-.stat-neo      → stat card with icon, value, label
-```
-
-### Colors
-| Name | Hex | Usage |
-|------|-----|-------|
-| Mulberry | `#C54B8C` | Primary accent, buttons, highlights |
-| Lavender Pink | `#fce4ec` | Sidebar background, soft accents |
-| Black | `#000000` | Borders, text, shadows |
-| White | `#FFFFFF` | Content areas, cards |
-
-### Typography
-- Font: System default (bold, uppercase for headings)
-- Tracking: `tracking-widest` for labels, `tracking-tight` for headings
-- Weights: `font-black` (900) for headings, `font-bold` (700) for body
+### Architecture on Vercel
+- `client/` → Static build via `@vercel/static-build`
+- `api/index.ts` → Serverless function via `@vercel/node`
+- Routes: `/api/*` → serverless, `/*` → SPA
 
 ---
 
 ## 🗄️ Database Schema
 
-### Models
-| Model | Key Fields | Relations |
-|-------|-----------|-----------|
-| User | email, passwordHash, role | → Employee |
-| Department | name, description | → Employees[] |
-| Employee | employeeId, name, email, designation, salary | → Department, Manager, Attendance[], Leaves[] |
-| Attendance | date, checkIn, checkOut, status, workingHours | → Employee |
-| LeaveRequest | leaveType, startDate, endDate, status, reason | → Employee |
-| LeaveBalance | casualUsed, sickUsed, paidUsed, unpaidUsed, year | → Employee |
-| PerformanceReview | reviewPeriod, tasksCompleted, goalsAchieved, overallScore | → Employee |
-| Skill | name, category | → EmployeeSkill[] |
-| EmployeeSkill | level (BEGINNER→EXPERT) | → Employee, Skill |
-| Project | name, startDate, status | → ProjectAssignment[] |
-| WorkforceInsight | type, severity, title, description | — |
+### Key Models (18 total)
 
-### Salary Breakdown (Payslip)
-| Component | Calculation |
-|-----------|-------------|
-| Basic | 50% of gross |
-| HRA | 20% of gross |
-| DA | 10% of gross |
-| Special Allowance | 20% of gross |
-| PF (deduction) | 12% of basic |
-| Income Tax (deduction) | 10% of gross |
-| Professional Tax (deduction) | ₹200 fixed |
+| Model | Purpose |
+|-------|---------|
+| User | Auth (email, passwordHash, role) |
+| Employee | Core record (name, designation, salary, department) |
+| Department | Org units (Engineering, Design, Marketing, HR) |
+| SalaryStructure | Monthly/yearly wage, working config |
+| SalaryComponent | Configurable salary parts (Basic, HRA, etc.) |
+| Attendance | Daily records (checkIn, checkOut, workingMinutes, extraMinutes) |
+| LeaveRequest | Leave applications (type, dates, status, duration) |
+| LeaveBalance | Annual leave tracking per type |
+| PerformanceReview | Reviews with all scoring fields + rating enum |
+| Skill / EmployeeSkill | Skill catalog + proficiency levels |
+| Project / ProjectAssignment | Project tracking |
+| WorkforceInsight | AI-generated alerts |
 
----
-
-## 🔐 Authentication Flow
-
-1. Client sends `POST /api/v1/auth/login` with `{ email, password }`
-2. Server verifies password hash (bcrypt)
-3. Server returns JWT token with `{ id, email, role, employeeId }`
-4. Client stores token as `workzen_token` in localStorage
-5. All subsequent requests include `Authorization: Bearer <token>`
-6. Server middleware verifies JWT on every protected route
-7. Fallback: Firebase token verification (if JWT fails)
+### Enums (12)
+UserRole, EmploymentStatus, AttendanceStatus, LeaveType, LeaveStatus, SkillLevel, InsightType, InsightSeverity, WageType, SalaryCalculationType, SalaryCalculationBase, PerformanceRating
 
 ---
 
 ## 📝 Seed Data
 
-The seeder creates:
-- **4 Departments**: Engineering, Design, Marketing, Human Resources
-- **12 Employees** with realistic Indian names and salaries (₹70K–₹180K)
-- **7 days** of attendance records (random present/late/absent)
-- **4 leave requests** (mix of pending/approved)
-- **12 performance reviews** (Q4 2024)
-- **10 skills** across 6 categories
-- **1 project** with 4 assignments
-- **4 AI workforce insights**
+- **4 Departments** with descriptions
+- **12 Employees** (Indian names, ₹70K–₹180K salaries)
+- **12 Salary Structures** with 6 components each (72 salary component records)
+- **~200 Attendance Records** (20 working days × 12 employees)
+- **6 Leave Requests** (mix of types and statuses)
+- **36 Performance Reviews** (3 quarters × 12 employees) for trend data
+- **10 Skills** across 6 categories
+- **1 Project** with 4 assignments
+- **4 Workforce Insights**
+
+---
+
+## 📚 Documentation
+
+| Document | Description |
+|----------|-------------|
+| [PERFORMANCE_SCORING.md](docs/PERFORMANCE_SCORING.md) | Weights, formula, normalization, ratings, bonus |
+| [SALARY_CALCULATIONS.md](docs/SALARY_CALCULATIONS.md) | Components, deductions, net salary, validation |
+| [ATTENDANCE_RULES.md](docs/ATTENDANCE_RULES.md) | Status rules, working hours, payable days |
+| [TIME_OFF_POLICY.md](docs/TIME_OFF_POLICY.md) | Leave types, balances, validation, approval |
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | System architecture, layers, deployment |
+| [API_CONTRACTS.md](docs/API_CONTRACTS.md) | All endpoints with request/response examples |
+| [DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md) | Models, relations, enums, seed data |
+| [DEVELOPMENT_GUIDE.md](docs/DEVELOPMENT_GUIDE.md) | Setup, workflow, conventions, troubleshooting |
+
+---
+
+## 🔧 Commands Reference
+
+```bash
+# Development
+cd server && npm run dev          # Start backend (port 5000)
+cd client && npm run dev          # Start frontend (port 5173)
+
+# Database
+npx prisma generate               # Generate Prisma client
+npx prisma migrate dev             # Run migrations
+npx tsx prisma/seed.ts             # Seed database
+npx prisma studio                  # Open DB GUI (port 5555)
+
+# Build
+cd client && npm run build         # Production build → dist/
+cd server && npx tsc               # Compile TypeScript → dist/
+
+# Deploy
+./deploy.sh                        # Auto-deploy to Vercel
+```
 
 ---
 
@@ -422,4 +429,4 @@ MIT
 
 ---
 
-Built by Team Paradox
+Built with ❤️ by **Team Paradox**
