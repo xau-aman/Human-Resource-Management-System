@@ -114,6 +114,18 @@ Modules are **interconnected** — attendance affects payable days, unpaid leave
 
 ---
 
+## 🌐 Live Demo
+
+**Production URL**: [https://workzen-hrms.vercel.app](https://workzen-hrms.vercel.app)
+
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | `admin@workzen.com` | `admin123` |
+| HR | `hr@workzen.com` | `admin123` |
+| Employee | `priya.sharma@workzen.com` | `emp123` |
+
+---
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -181,7 +193,7 @@ cd client && npm run dev
 |------|-------|----------|
 | Admin | `admin@workzen.com` | `admin123` |
 | HR | `hr@workzen.com` | `admin123` |
-| Employee | `priya.patel@workzen.com` | `emp123` |
+| Employee | `priya.sharma@workzen.com` | `emp123` |
 
 ---
 

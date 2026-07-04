@@ -46,7 +46,7 @@ async function main() {
   // Employees with salaries
   const employeeData = [
     { firstName: 'Arjun', lastName: 'Sharma', email: 'admin@workzen.com', designation: 'Engineering Manager', dept: engineering.id, role: UserRole.ADMIN, status: EmploymentStatus.ACTIVE, joining: new Date('2021-03-15'), hash: passwordHash, salary: 180000 },
-    { firstName: 'Priya', lastName: 'Patel', email: 'priya.patel@workzen.com', designation: 'Senior Frontend Developer', dept: engineering.id, role: UserRole.EMPLOYEE, status: EmploymentStatus.ACTIVE, joining: new Date('2021-07-01'), hash: empPasswordHash, salary: 120000 },
+    { firstName: 'Priya', lastName: 'Sharma', email: 'priya.sharma@workzen.com', designation: 'Senior Frontend Developer', dept: engineering.id, role: UserRole.EMPLOYEE, status: EmploymentStatus.ACTIVE, joining: new Date('2021-07-01'), hash: empPasswordHash, salary: 120000 },
     { firstName: 'Rahul', lastName: 'Verma', email: 'rahul.verma@workzen.com', designation: 'Backend Developer', dept: engineering.id, role: UserRole.EMPLOYEE, status: EmploymentStatus.ACTIVE, joining: new Date('2022-01-10'), hash: empPasswordHash, salary: 95000 },
     { firstName: 'Sneha', lastName: 'Iyer', email: 'sneha.iyer@workzen.com', designation: 'Full Stack Developer', dept: engineering.id, role: UserRole.EMPLOYEE, status: EmploymentStatus.ACTIVE, joining: new Date('2022-06-20'), hash: empPasswordHash, salary: 110000 },
     { firstName: 'Vikram', lastName: 'Nair', email: 'vikram.nair@workzen.com', designation: 'DevOps Engineer', dept: engineering.id, role: UserRole.EMPLOYEE, status: EmploymentStatus.ON_LEAVE, joining: new Date('2021-11-05'), hash: empPasswordHash, salary: 105000 },
