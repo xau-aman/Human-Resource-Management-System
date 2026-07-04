@@ -14,6 +14,8 @@ import SkillsPage from './pages/skills/SkillsPage';
 import AnalyticsPage from './pages/analytics/AnalyticsPage';
 import AIInsightsPage from './pages/ai-insights/AIInsightsPage';
 import SettingsPage from './pages/settings/SettingsPage';
+import PayslipPage from './pages/payslip/PayslipPage';
+import PayrollPage from './pages/payroll/PayrollPage';
 import { LoadingState } from './components/ui';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -34,6 +36,8 @@ function AppRoutes() {
         <Route path="/employees/:id" element={<EmployeeProfilePage />} />
         <Route path="/attendance" element={<AttendancePage />} />
         <Route path="/leave" element={<LeavePage />} />
+        <Route path="/payslip" element={<PayslipPage />} />
+        <Route path="/payroll" element={<PayrollPage />} />
         <Route path="/performance" element={<PerformancePage />} />
         <Route path="/skills" element={<SkillsPage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />

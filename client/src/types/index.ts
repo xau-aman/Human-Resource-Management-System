@@ -44,6 +44,7 @@ export interface Employee {
   phone?: string;
   department: Department;
   designation: string;
+  salary?: number;
   role?: UserRole;
   joiningDate: string;
   employmentStatus: EmploymentStatus;

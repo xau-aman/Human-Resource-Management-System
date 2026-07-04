@@ -1,25 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { Button, Input, Select, Card, PageHeader } from '../../components/ui';
-
-const deptOptions = [
-  { value: 'd1', label: 'Engineering' },
-  { value: 'd2', label: 'Design' },
-  { value: 'd3', label: 'Marketing' },
-  { value: 'd4', label: 'Human Resources' },
-];
+import { createEmployee, getDepartments } from '../../services/employee.service';
 
 export default function AddEmployeePage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', designation: '', departmentId: 'd1', joiningDate: '' });
+  const [deptOptions, setDeptOptions] = useState<{ value: string; label: string }[]>([]);
+  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', designation: '', departmentId: '', joiningDate: '' });
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    getDepartments().then(deps => {
+      const opts = deps.map(d => ({ value: d.id, label: d.name }));
+      setDeptOptions(opts);
+      if (opts.length) setForm(f => ({ ...f, departmentId: opts[0].value }));
+    });
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // TODO[CORE]: Call createEmployee service
-    setTimeout(() => { setLoading(false); navigate('/employees'); }, 800);
+    setError('');
+    try {
+      await createEmployee(form as any);
+      navigate('/employees');
+    } catch (err: any) {
+      setError(err.message || 'Failed to create employee');
+    }
+    setLoading(false);
   };
 
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
@@ -33,6 +43,7 @@ export default function AddEmployeePage() {
       <PageHeader title="Add Employee" description="Create a new employee record" />
       <Card className="max-w-2xl">
         <form onSubmit={handleSubmit} className="space-y-4">
+          {error && <p className="text-sm text-red-600 font-bold bg-red-50 p-3 rounded-xl border-2 border-red-200">{error}</p>}
           <div className="grid grid-cols-2 gap-4">
             <Input label="First Name" required value={form.firstName} onChange={set('firstName')} placeholder="Arjun" />
             <Input label="Last Name" required value={form.lastName} onChange={set('lastName')} placeholder="Sharma" />

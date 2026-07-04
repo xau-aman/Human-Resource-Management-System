@@ -1,6 +1,11 @@
 import type { Employee } from '../types';
 import { api } from '../config/api';
 
+export async function getDepartments(): Promise<{ id: string; name: string }[]> {
+  const res = await api.get<{ data: { id: string; name: string }[] }>('/employees/departments');
+  return res.data;
+}
+
 export async function getEmployees(filters?: { department?: string; status?: string; search?: string }): Promise<Employee[]> {
   const params = new URLSearchParams();
   if (filters?.department) params.set('department', filters.department);

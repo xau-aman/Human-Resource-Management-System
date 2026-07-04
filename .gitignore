@@ -12,10 +12,13 @@ server/dist/
 # Environment files
 .env
 .env.local
-.env.production
+server/.env
+
+# Keep client .env.production (only has VITE_API_URL=/api/v1)
+!client/.env.production
 
 # Prisma
-server/prisma/migrations/
+# server/prisma/migrations/
 
 # Logs
 *.log

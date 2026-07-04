@@ -23,7 +23,13 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     },
   });
 
-  const json = await res.json();
+  const text = await res.text();
+  let json: any;
+  try {
+    json = JSON.parse(text);
+  } catch {
+    throw new Error(res.ok ? 'Invalid response from server' : `Server error (${res.status})`);
+  }
   if (!res.ok) throw new Error(json.message || 'Request failed');
   return json;
 }

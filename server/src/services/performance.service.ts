@@ -1,49 +1,15 @@
 import prisma from '../config/prisma';
+import { calculatePerformanceScore, getPerformanceRating, calculatePerformanceBonusRecommendation, BONUS_MULTIPLIERS, type PerformanceRatingType } from '../utils/performance';
+import { calculateAttendanceConsistency } from '../utils/attendance';
 
-const attendanceConsistencyStatuses = new Set(['PRESENT', 'LATE', 'HALF_DAY']);
-
-async function getAttendanceConsistency(employeeId: string): Promise<number> {
+async function getAttendanceConsistencyForEmployee(employeeId: string): Promise<number> {
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - 30);
-
-  const attendanceRecords = await prisma.attendance.findMany({
-    where: {
-      employeeId,
-      date: { gte: startDate },
-    },
+  const records = await prisma.attendance.findMany({
+    where: { employeeId, date: { gte: startDate } },
     select: { status: true },
   });
-
-  if (attendanceRecords.length === 0) {
-    return 0.9;
-  }
-
-  const presentDays = attendanceRecords.filter((record) => attendanceConsistencyStatuses.has(record.status)).length;
-  return Number((presentDays / attendanceRecords.length).toFixed(2));
-}
-
-export function calculatePerformanceScore(
-  tasksCompleted: number,
-  goalsAchieved: number,
-  totalGoals: number,
-  managerRating: number,
-  attendanceRate: number
-): number {
-  const taskCompletionScore = totalGoals > 0 ? (Math.min(tasksCompleted, totalGoals) / totalGoals) * 100 : 0;
-  const goalAchievementScore = totalGoals > 0 ? (goalsAchieved / totalGoals) * 100 : 0;
-  const managerRatingScore = Math.max(0, Math.min(5, managerRating)) / 5 * 100;
-  const attendanceConsistencyScore = Math.max(0, Math.min(1, attendanceRate)) * 100;
-
-  const score = taskCompletionScore * 0.35 + goalAchievementScore * 0.3 + managerRatingScore * 0.25 + attendanceConsistencyScore * 0.1;
-  return parseFloat(Math.min(100, Math.max(0, score)).toFixed(1));
-}
-
-export function getPerformanceRating(score: number): string {
-  if (score >= 90) return 'Exceptional';
-  if (score >= 75) return 'Strong';
-  if (score >= 60) return 'Good';
-  if (score >= 40) return 'Needs Improvement';
-  return 'Critical';
+  return calculateAttendanceConsistency(records);
 }
 
 export async function getPerformanceReviews() {
@@ -52,81 +18,121 @@ export async function getPerformanceReviews() {
     orderBy: { createdAt: 'desc' },
   });
 
-  return Promise.all(
-    reviews.map(async (review) => {
-      const attendanceRate = await getAttendanceConsistency(review.employeeId);
-      const score = calculatePerformanceScore(review.tasksCompleted, review.goalsAchieved, review.totalGoals, review.managerRating, attendanceRate);
-      return {
-        ...review,
-        attendanceRate,
-        score,
-        rating: getPerformanceRating(score),
-      };
-    })
-  );
+  return Promise.all(reviews.map(async (review) => {
+    const attendanceScore = review.attendanceConsistencyScore ?? await getAttendanceConsistencyForEmployee(review.employeeId);
+    const skillGrowth = review.skillGrowthScore ?? 70; // Default if not set
+
+    const breakdown = calculatePerformanceScore({
+      assignedTasks: review.assignedTasks || review.totalGoals || 1,
+      completedTasks: review.tasksCompleted,
+      assignedGoals: review.assignedGoals || review.totalGoals || 1,
+      achievedGoals: review.goalsAchieved,
+      managerRating: review.managerRating,
+      attendanceConsistencyScore: attendanceScore,
+      skillGrowthScore: skillGrowth,
+    });
+
+    return {
+      ...review,
+      taskCompletionScore: breakdown.taskCompletionScore,
+      goalAchievementScore: breakdown.goalAchievementScore,
+      managerRatingScore: breakdown.managerRatingScore,
+      attendanceConsistencyScore: attendanceScore,
+      skillGrowthScore: skillGrowth,
+      overallScore: breakdown.finalScore,
+      rating: breakdown.rating,
+      breakdown,
+    };
+  }));
 }
 
 export async function getEmployeePerformance(employeeId: string) {
-  const review = await prisma.performanceReview.findFirst({
+  const reviews = await prisma.performanceReview.findMany({
     where: { employeeId },
-    include: { employee: { select: { id: true, firstName: true, lastName: true } } },
+    include: { employee: { select: { id: true, firstName: true, lastName: true, employeeId: true, designation: true, department: { select: { name: true } } } } },
     orderBy: { createdAt: 'desc' },
   });
 
-  if (!review) {
-    return null;
-  }
+  if (reviews.length === 0) return null;
 
-  const attendanceRate = await getAttendanceConsistency(employeeId);
-  const score = calculatePerformanceScore(review.tasksCompleted, review.goalsAchieved, review.totalGoals, review.managerRating, attendanceRate);
+  const attendanceScore = await getAttendanceConsistencyForEmployee(employeeId);
 
-  return {
-    ...review,
-    attendanceRate,
-    score,
-    rating: getPerformanceRating(score),
-  };
+  return Promise.all(reviews.map(async (review) => {
+    const skillGrowth = review.skillGrowthScore ?? 70;
+    const breakdown = calculatePerformanceScore({
+      assignedTasks: review.assignedTasks || review.totalGoals || 1,
+      completedTasks: review.tasksCompleted,
+      assignedGoals: review.assignedGoals || review.totalGoals || 1,
+      achievedGoals: review.goalsAchieved,
+      managerRating: review.managerRating,
+      attendanceConsistencyScore: attendanceScore,
+      skillGrowthScore: skillGrowth,
+    });
+
+    return { ...review, overallScore: breakdown.finalScore, rating: breakdown.rating, breakdown };
+  }));
 }
 
 export async function getTopPerformers(limit = 5) {
   const reviews = await getPerformanceReviews();
   return reviews
-    .sort((left, right) => right.score - left.score)
+    .sort((a, b) => b.overallScore - a.overallScore)
     .slice(0, limit)
-    .map((review) => ({
-      employeeId: review.employeeId,
-      employeeName: `${review.employee.firstName} ${review.employee.lastName}`,
-      employeeIdValue: review.employee.employeeId,
-      designation: review.employee.designation,
-      department: review.employee.department?.name ?? 'N/A',
-      score: review.score,
-      rating: review.rating,
+    .map(r => ({
+      employeeId: r.employeeId,
+      employeeName: `${r.employee.firstName} ${r.employee.lastName}`,
+      employeeIdValue: r.employee.employeeId,
+      designation: r.employee.designation,
+      department: r.employee.department?.name ?? 'N/A',
+      score: r.overallScore,
+      rating: r.rating,
     }));
+}
+
+export async function getPerformanceSummary() {
+  const reviews = await getPerformanceReviews();
+  if (reviews.length === 0) return { avgScore: 0, topPerformer: null, needsAttention: 0, totalReviews: 0 };
+
+  const avgScore = parseFloat((reviews.reduce((s, r) => s + r.overallScore, 0) / reviews.length).toFixed(1));
+  const sorted = [...reviews].sort((a, b) => b.overallScore - a.overallScore);
+  const topPerformer = sorted[0] ? `${sorted[0].employee.firstName} ${sorted[0].employee.lastName}` : null;
+  const needsAttention = reviews.filter(r => r.overallScore < 60).length;
+
+  return { avgScore, topPerformer, needsAttention, totalReviews: reviews.length };
 }
 
 export async function getPerformanceTrend(limit = 6) {
   const reviews = await prisma.performanceReview.findMany({
     orderBy: { createdAt: 'asc' },
-    select: { employeeId: true, reviewPeriod: true, tasksCompleted: true, goalsAchieved: true, totalGoals: true, managerRating: true, createdAt: true },
+    select: { employeeId: true, reviewPeriod: true, tasksCompleted: true, goalsAchieved: true, totalGoals: true, assignedTasks: true, assignedGoals: true, managerRating: true, attendanceConsistencyScore: true, skillGrowthScore: true, createdAt: true },
   });
 
-  const trendMap = new Map<string, { period: string; scoreSum: number; reviewCount: number }>();
+  const trendMap = new Map<string, { period: string; scoreSum: number; count: number }>();
 
   for (const review of reviews) {
-    const attendanceRate = await getAttendanceConsistency(review.employeeId);
-    const score = calculatePerformanceScore(review.tasksCompleted, review.goalsAchieved, review.totalGoals, review.managerRating, attendanceRate);
+    const attendanceScore = review.attendanceConsistencyScore ?? 85;
+    const skillGrowth = review.skillGrowthScore ?? 70;
+    const breakdown = calculatePerformanceScore({
+      assignedTasks: review.assignedTasks || review.totalGoals || 1,
+      completedTasks: review.tasksCompleted,
+      assignedGoals: review.assignedGoals || review.totalGoals || 1,
+      achievedGoals: review.goalsAchieved,
+      managerRating: review.managerRating,
+      attendanceConsistencyScore: attendanceScore,
+      skillGrowthScore: skillGrowth,
+    });
+
     const period = review.reviewPeriod || review.createdAt.toISOString().slice(0, 7);
-    const current = trendMap.get(period) ?? { period, scoreSum: 0, reviewCount: 0 };
-    current.scoreSum += score;
-    current.reviewCount += 1;
+    const current = trendMap.get(period) ?? { period, scoreSum: 0, count: 0 };
+    current.scoreSum += breakdown.finalScore;
+    current.count += 1;
     trendMap.set(period, current);
   }
 
   return Array.from(trendMap.values())
-    .map((entry) => ({
-      period: entry.period,
-      averageScore: parseFloat((entry.scoreSum / entry.reviewCount).toFixed(1)),
-    }))
-    .sort((left, right) => left.period.localeCompare(right.period))
+    .map(e => ({ period: e.period, averageScore: parseFloat((e.scoreSum / e.count).toFixed(1)) }))
+    .sort((a, b) => a.period.localeCompare(b.period))
     .slice(-limit);
 }
+
+export { calculatePerformanceBonusRecommendation, getPerformanceRating };

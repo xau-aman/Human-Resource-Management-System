@@ -139,19 +139,42 @@ function SecurityTab() {
 }
 
 function DataTab() {
+  const { user } = useAuth();
   const [exporting, setExporting] = useState<string | null>(null);
-  const handleExport = (type: string) => { setExporting(type); setTimeout(() => setExporting(null), 1500); };
+  const isAdminOrHR = user?.role === 'ADMIN' || user?.role === 'HR';
+
+  const handleExport = async (type: string) => {
+    setExporting(type);
+    try {
+      const token = localStorage.getItem('workzen_token');
+      const baseUrl = import.meta.env.VITE_API_URL || '/api/v1';
+      const res = await fetch(`${baseUrl}/export/${type}`, { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) throw new Error('Export failed');
+      const blob = await res.blob();
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${type}.csv`; a.click();
+    } catch { /* ignore */ }
+    setTimeout(() => setExporting(null), 1000);
+  };
 
   const exports = [
-    { id: 'employees', label: 'Employees', desc: 'All profiles' },
-    { id: 'attendance', label: 'Attendance', desc: 'Full history' },
-    { id: 'performance', label: 'Performance', desc: 'All reviews' },
-    { id: 'leaves', label: 'Leaves', desc: 'All requests' },
+    { id: 'employees', label: 'Employees', desc: 'All profiles & salary data' },
+    { id: 'attendance', label: 'Attendance', desc: 'Full attendance history' },
+    { id: 'performance', label: 'Performance', desc: 'All reviews & scores' },
+    { id: 'leaves', label: 'Leaves', desc: 'All leave requests' },
   ];
+
+  if (!isAdminOrHR) {
+    return (
+      <Card>
+        <p className="text-xs font-black text-black uppercase tracking-widest mb-4">Export Data</p>
+        <p className="text-sm text-black/50">You can download your payslip from the <span className="font-bold text-[#C54B8C]">Payslip</span> page.</p>
+      </Card>
+    );
+  }
 
   return (
     <Card>
-      <p className="text-xs font-black text-black uppercase tracking-widest mb-4">Export Data</p>
+      <p className="text-xs font-black text-black uppercase tracking-widest mb-4">Export Data (CSV)</p>
       <div className="space-y-3">
         {exports.map(e => (
           <div key={e.id} className="flex items-center justify-between p-4 border-2 border-black/10 rounded-xl">

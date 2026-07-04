@@ -63,6 +63,29 @@ enum InsightSeverity {
   CRITICAL
 }
 
+enum WageType {
+  FIXED
+}
+
+enum SalaryCalculationType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  REMAINDER
+}
+
+enum SalaryCalculationBase {
+  MONTHLY_WAGE
+  BASIC_SALARY
+}
+
+enum PerformanceRating {
+  EXCEPTIONAL
+  STRONG
+  GOOD
+  NEEDS_IMPROVEMENT
+  CRITICAL
+}
+
 model User {
   id           String    @id @default(cuid())
   email        String    @unique
@@ -91,6 +114,7 @@ model Employee {
   email            String           @unique
   phone            String?
   designation      String
+  salary           Float?           @default(0)
   joiningDate      DateTime
   employmentStatus EmploymentStatus @default(ACTIVE)
   avatar           String?
@@ -107,22 +131,56 @@ model Employee {
   performanceReviews PerformanceReview[]
   employeeSkills   EmployeeSkill[]
   projectAssignments ProjectAssignment[]
+  salaryStructure  SalaryStructure?
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 }
 
+model SalaryStructure {
+  id                  String    @id @default(cuid())
+  employeeId          String    @unique
+  employee            Employee  @relation(fields: [employeeId], references: [id])
+  monthlyWage         Float
+  yearlyWage          Float
+  wageType            WageType  @default(FIXED)
+  workingDaysPerWeek  Int       @default(5)
+  workingHoursPerDay  Float     @default(8)
+  breakTimeMinutes    Int       @default(60)
+  components          SalaryComponent[]
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+}
+
+model SalaryComponent {
+  id                String                @id @default(cuid())
+  salaryStructureId String
+  salaryStructure   SalaryStructure       @relation(fields: [salaryStructureId], references: [id], onDelete: Cascade)
+  name              String
+  code              String
+  calculationType   SalaryCalculationType
+  percentage        Float?
+  fixedAmount       Float?
+  calculationBase   SalaryCalculationBase @default(MONTHLY_WAGE)
+  description       String?
+  sortOrder         Int                   @default(0)
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+}
+
 model Attendance {
-  id         String           @id @default(cuid())
-  employeeId String
-  employee   Employee         @relation(fields: [employeeId], references: [id])
-  date       DateTime         @db.Date
-  checkIn    DateTime?
-  checkOut   DateTime?
-  status     AttendanceStatus @default(PRESENT)
-  workingHours Float?
-  notes      String?
-  createdAt  DateTime         @default(now())
-  updatedAt  DateTime         @updatedAt
+  id             String           @id @default(cuid())
+  employeeId     String
+  employee       Employee         @relation(fields: [employeeId], references: [id])
+  date           DateTime         @db.Date
+  checkIn        DateTime?
+  checkOut       DateTime?
+  status         AttendanceStatus @default(PRESENT)
+  workingHours   Float?
+  workingMinutes Int?
+  extraMinutes   Int?
+  notes          String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 
   @@unique([employeeId, date])
 }
@@ -134,10 +192,12 @@ model LeaveRequest {
   leaveType  LeaveType
   startDate  DateTime    @db.Date
   endDate    DateTime    @db.Date
+  duration   Int?
   reason     String
   status     LeaveStatus @default(PENDING)
   reviewedBy String?
   reviewedAt DateTime?
+  attachmentName String?
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
 }
@@ -162,11 +222,24 @@ model PerformanceReview {
   employeeId      String
   employee        Employee @relation(fields: [employeeId], references: [id])
   reviewPeriod    String
+  reviewPeriodStart DateTime?
+  reviewPeriodEnd   DateTime?
+  // Raw metrics
+  assignedTasks   Int      @default(0)
   tasksCompleted  Int      @default(0)
+  assignedGoals   Int      @default(0)
   goalsAchieved   Int      @default(0)
   totalGoals      Int      @default(0)
   managerRating   Float    @default(0)
+  // Normalized scores (0-100)
+  taskCompletionScore    Float?
+  goalAchievementScore   Float?
+  managerRatingScore     Float?
+  attendanceConsistencyScore Float?
+  skillGrowthScore       Float?
+  // Final
   overallScore    Float    @default(0)
+  rating          PerformanceRating?
   comments        String?
   reviewedBy      String?
   createdAt       DateTime @default(now())

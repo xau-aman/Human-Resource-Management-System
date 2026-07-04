@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { clsx } from 'clsx';
-import { LayoutDashboard, Users, Clock, CalendarOff, TrendingUp, Layers, BarChart2, Sparkles, Settings } from 'lucide-react';
+import { LayoutDashboard, Users, Clock, CalendarOff, TrendingUp, Layers, BarChart2, Sparkles, Settings, IndianRupee, Wallet } from 'lucide-react';
 import { Logo } from '../ui';
 import { useAuth } from '../../context/AuthContext';
 
@@ -10,6 +10,8 @@ const allNavItems = [
   { to: '/employees', icon: Users, label: 'Employees', roles: ['ADMIN', 'HR'] },
   { to: '/attendance', icon: Clock, label: 'Attendance', roles: ['ADMIN', 'HR', 'MANAGER', 'EMPLOYEE'] },
   { to: '/leave', icon: CalendarOff, label: 'Leave', roles: ['ADMIN', 'HR', 'MANAGER', 'EMPLOYEE'] },
+  { to: '/payslip', icon: IndianRupee, label: 'Payslip', roles: ['EMPLOYEE'] },
+  { to: '/payroll', icon: Wallet, label: 'Payroll', roles: ['ADMIN', 'HR'] },
   { to: '/performance', icon: TrendingUp, label: 'Performance', roles: ['ADMIN', 'HR', 'MANAGER'] },
   { to: '/skills', icon: Layers, label: 'Skills', roles: ['ADMIN', 'HR', 'MANAGER'] },
   { to: '/analytics', icon: BarChart2, label: 'Analytics', roles: ['ADMIN', 'HR'] },

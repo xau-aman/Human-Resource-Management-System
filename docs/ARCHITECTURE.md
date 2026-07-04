@@ -2,130 +2,171 @@
 
 ## Overview
 
-WorkZen HRMS is a monorepo with a React frontend and Express backend, connected via REST API.
+WorkZen HRMS is a monorepo with a React frontend and Express backend, connected via REST API. Authentication is JWT-based, data is stored in PostgreSQL via Prisma ORM, and AI features use Google Gemini.
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    WORKZEN HRMS                         │
-│                                                         │
-│  ┌──────────────────┐      ┌──────────────────────────┐ │
-│  │   CLIENT (React) │      │   SERVER (Express)       │ │
-│  │                  │      │                          │ │
-│  │  pages/          │      │  routes/                 │ │
-│  │  ├─ dashboard    │      │  controllers/            │ │
-│  │  ├─ employees    │ HTTP │  services/               │ │
-│  │  ├─ attendance   │◄────►│  repositories/           │ │
-│  │  ├─ leave        │      │                          │ │
-│  │  ├─ performance  │      │  ┌──────────────────┐    │ │
-│  │  ├─ skills       │      │  │   Prisma ORM     │    │ │
-│  │  ├─ analytics    │      │  └────────┬─────────┘    │ │
-│  │  └─ ai-insights  │      │           │              │ │
-│  │                  │      │  ┌────────▼─────────┐    │ │
-│  │  services/       │      │  │   PostgreSQL     │    │ │
-│  │  (mock → API)    │      │  └──────────────────┘    │ │
-│  └──────────────────┘      └──────────────────────────┘ │
-└─────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                        WORKZEN HRMS                              │
+│                                                                  │
+│  ┌────────────────────┐         ┌─────────────────────────────┐ │
+│  │  CLIENT (React 19) │         │   SERVER (Express 4)        │ │
+│  │                    │         │                             │ │
+│  │  pages/            │         │  routes/ → controllers/     │ │
+│  │  ├─ dashboard      │         │  → services/ → Prisma      │ │
+│  │  ├─ employees      │  HTTP   │                             │ │
+│  │  ├─ attendance     │◄───────►│  middleware/                │ │
+│  │  ├─ leave          │  JWT    │  ├─ auth (JWT + Firebase)   │ │
+│  │  ├─ performance    │         │  ├─ errorHandler            │ │
+│  │  ├─ payslip        │         │  └─ requestLogger           │ │
+│  │  ├─ skills         │         │                             │ │
+│  │  ├─ analytics      │         │  ┌───────────────────┐      │ │
+│  │  ├─ ai-insights    │         │  │   Prisma ORM      │      │ │
+│  │  └─ settings       │         │  └────────┬──────────┘      │ │
+│  │                    │         │           │                 │ │
+│  │  context/          │         │  ┌────────▼──────────┐      │ │
+│  │  └─ AuthContext    │         │  │   PostgreSQL 16   │      │ │
+│  │                    │         │  └───────────────────┘      │ │
+│  │  services/         │         │                             │ │
+│  │  └─ Real API calls │         │  ┌───────────────────┐      │ │
+│  │                    │         │  │  Google Gemini AI  │      │ │
+│  │  components/       │         │  └───────────────────┘      │ │
+│  │  ├─ ui/ (design)   │         │                             │ │
+│  │  └─ layout/        │         │                             │ │
+│  └────────────────────┘         └─────────────────────────────┘ │
+│                                                                  │
+│  ┌──────────────────────────────────────────────────────────┐    │
+│  │  VERCEL DEPLOYMENT                                        │    │
+│  │  client/ → Static Build (Vite)                           │    │
+│  │  api/    → Serverless Function (@vercel/node)            │    │
+│  └──────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ## Frontend Architecture
 
-- **React + TypeScript + Vite** — Fast development and build
-- **React Router v6** — Client-side routing with nested layouts
-- **Tailwind CSS** — Utility-first styling
-- **Recharts** — Data visualization
-- **Context API** — Auth state management
+- **React 19 + TypeScript 6 + Vite 8** — Fast HMR and builds
+- **React Router v7** — Client-side routing with nested layouts
+- **Tailwind CSS 4** — Utility-first with custom neobrutalism classes
+- **Recharts** — Data visualization (bar, line, pie charts)
+- **Context API** — Auth state management (JWT)
+- **Lucide React** — Icon library
 
 ### Layer Structure
 ```
-pages/          → Route-level components (one per page)
-features/       → Feature-specific components and logic
-components/ui/  → Reusable design system components
-services/       → API abstraction layer (mock → real)
-data/           → Mock data for development
-types/          → Shared TypeScript interfaces
-context/        → React context providers
+pages/              → Route-level components (one per page)
+components/ui/      → Reusable design system (Button, Card, Badge, Table, etc.)
+components/layout/  → AppLayout, Sidebar, Topbar
+services/           → API abstraction layer (real API calls)
+context/            → AuthContext (JWT auth, role management)
+config/             → api.ts (fetch wrapper with auto-auth)
+types/              → Shared TypeScript interfaces
+index.css           → Neobrutalism design system classes
 ```
 
 ### Service Layer Pattern
-All data access goes through service files. Services currently use mock data but are designed to be swapped for real API calls:
+All data access goes through service files that call the real API:
 
 ```typescript
-// Current (mock)
-export async function getEmployees() {
-  return mockEmployees;
-}
+import { api } from '../config/api';
 
-// Future (real API)
-export async function getEmployees() {
-  const res = await fetch('/api/v1/employees');
-  return res.json();
+export async function getEmployees(): Promise<Employee[]> {
+  const res = await api.get<{ data: Employee[] }>('/employees');
+  return res.data;
 }
 ```
+
+The `api` helper automatically:
+- Prepends the base URL (`VITE_API_URL`)
+- Attaches JWT token from localStorage
+- Parses JSON response
+- Throws on non-OK responses with server error message
 
 ## Backend Architecture
 
-- **Express + TypeScript** — REST API server
-- **Prisma ORM** — Type-safe database access
-- **PostgreSQL** — Relational database
+- **Express 4 + TypeScript 5** — REST API server
+- **Prisma 6** — Type-safe database access with PostgreSQL
+- **JWT** — Stateless authentication
+- **Firebase Admin** — Optional token verification fallback
+- **Google Gemini** — AI-powered workforce insights
 
 ### Layer Structure
 ```
-routes/         → HTTP route definitions
-controllers/    → Request/response handling
-services/       → Business logic
-repositories/   → (future) Data access abstraction
-middleware/     → Auth, logging, error handling
+routes/         → HTTP route definitions + middleware binding
+controllers/    → Request parsing, response formatting
+services/       → Business logic, validation, calculations
+middleware/     → auth (JWT/Firebase), errorHandler, requestLogger
+config/         → env, prisma, firebase
+types/          → API response wrapper types
+utils/          → AppError class
 ```
 
 ### Request Flow
 ```
 HTTP Request
-    → Route
-    → Middleware (auth, logging)
-    → Controller
-    → Service
-    → Prisma
-    → PostgreSQL
-    → Response
+  → CORS check
+  → JSON body parser
+  → Request logger
+  → Route matcher
+  → Auth middleware (JWT verify → role check)
+  → Controller (parse req, call service)
+  → Service (business logic, Prisma queries)
+  → Response wrapper (createResponse/createPaginatedResponse)
+  → JSON Response
+```
+
+### Error Handling
+All errors return consistent JSON:
+```json
+{
+  "success": false,
+  "message": "Error description",
+  "data": null,
+  "timestamp": "2024-12-20T10:00:00.000Z"
+}
 ```
 
 ## Authentication Architecture
 
-Currently uses mock authentication for hackathon development. The auth system is isolated in:
-- `context/AuthContext.tsx` — Frontend auth state
-- `middleware/auth.middleware.ts` — Backend auth middleware
+### JWT Flow
+1. `POST /api/v1/auth/login` → verify bcrypt hash → sign JWT
+2. JWT payload: `{ id, email, role, employeeId }`
+3. Client stores as `workzen_token` in localStorage
+4. Every request: `Authorization: Bearer <token>`
+5. Middleware: verify JWT → attach `req.user` → check role
 
-To replace with real JWT auth:
-1. Update `AuthContext.tsx` login function to call `/api/v1/auth/login`
-2. Update `auth.middleware.ts` to verify real JWT tokens
-3. No other files need to change
-
-## Module Isolation
-
-Each feature module is self-contained:
-```
-features/attendance/
-├── components/    → Attendance-specific UI
-├── hooks/         → Attendance-specific hooks
-└── index.ts       → Barrel export
+### Role Middleware
+```typescript
+export const onlyAdmin = authorize('ADMIN');
+export const adminOrHR = authorize('ADMIN', 'HR');
+export const adminHROrManager = authorize('ADMIN', 'HR', 'MANAGER');
+export const allRoles = authorize('ADMIN', 'HR', 'MANAGER', 'EMPLOYEE');
 ```
 
-Modules communicate only through:
-- Shared `types/` interfaces
-- Shared `services/` functions
-- Shared `components/ui/` components
+### Fallback: Firebase Token
+If JWT verification fails, the middleware tries Firebase Admin token verification as fallback.
 
-## Future AI Integration
+## Deployment Architecture (Vercel)
 
-The AI Insights module is architected for future ML integration:
 ```
-ai-insights.service.ts
-└── askWorkforceQuestion(question)
-    → Currently: keyword matching on mock data
-    → Future: LLM API call (OpenAI, Bedrock, etc.)
+vercel.json
+├── builds:
+│   ├── client/package.json → @vercel/static-build → client/dist/
+│   └── api/index.ts → @vercel/node → serverless function
+├── routes:
+│   ├── /api/* → api/index.ts (Express app)
+│   └── /* → client/dist/ (SPA with fallback to index.html)
 ```
 
-The `WorkforceInsight` interface is designed to be populated by:
-- Rule-based alerts (current)
-- ML anomaly detection (future)
-- LLM analysis (future)
+The `api/index.ts` file imports the entire Express app and exports it as a Vercel serverless function. All server dependencies are in the root `package.json`.
+
+## AI Integration
+
+The AI Insights module uses Google Gemini 2.5 Flash:
+```
+POST /api/v1/insights/ask { question }
+  → Build context from DB (employees, attendance, performance)
+  → Send to Gemini with system prompt
+  → Return structured response
+```
+
+Insights are also auto-generated and stored in `WorkforceInsight` table for dashboard display.

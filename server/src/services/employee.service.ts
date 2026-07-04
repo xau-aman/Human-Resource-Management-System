@@ -25,6 +25,10 @@ const employeeInclude = {
   manager: { select: { id: true, firstName: true, lastName: true } },
 };
 
+interface UpdateEmployeeInput extends Partial<CreateEmployeeInput> {
+  salary?: number;
+}
+
 export async function getEmployees({ page, limit, department, status, search }: GetEmployeesParams) {
   const where = {
     ...(department && { department: { name: department } }),
@@ -63,10 +67,11 @@ export async function createEmployee(data: CreateEmployeeInput) {
   });
 }
 
-export async function updateEmployee(id: string, data: Partial<CreateEmployeeInput>) {
+export async function updateEmployee(id: string, data: UpdateEmployeeInput) {
   const employee = await prisma.employee.findUnique({ where: { id } });
   if (!employee) throw new AppError('Employee not found', 404);
-  return prisma.employee.update({ where: { id }, data, include: employeeInclude });
+  const { joiningDate, ...rest } = data;
+  return prisma.employee.update({ where: { id }, data: { ...rest, ...(joiningDate && { joiningDate: new Date(joiningDate) }) }, include: employeeInclude });
 }
 
 export async function deleteEmployee(id: string) {
