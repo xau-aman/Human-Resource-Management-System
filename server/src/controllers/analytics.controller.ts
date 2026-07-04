@@ -4,7 +4,6 @@ import { createResponse } from '../types/api.types';
 
 export async function getWorkforceOverview(_req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    // TODO[ANALYTICS]: Implement workforce analytics calculations
     const overview = await analyticsService.getWorkforceOverview();
     res.json(createResponse(overview));
   } catch (err) {
@@ -25,6 +24,15 @@ export async function getAttendanceTrend(req: Request, res: Response, next: Next
 export async function getDepartmentPerformance(_req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const data = await analyticsService.calculateDepartmentPerformance();
+    res.json(createResponse(data));
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getEmployeeGrowth(_req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const data = await analyticsService.calculateEmployeeGrowth();
     res.json(createResponse(data));
   } catch (err) {
     next(err);
