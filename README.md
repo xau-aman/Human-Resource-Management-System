@@ -98,3 +98,7 @@ See [docs/API_CONTRACTS.md](docs/API_CONTRACTS.md)
 ## Architecture
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+
+## Skills Intelligence
+
+The skills module now includes skill gap analysis, department coverage insights, and employee skill recommendations for better workforce planning.
