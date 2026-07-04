@@ -216,7 +216,7 @@ async function main() {
   console.log('✅ Seed complete!');
   console.log('📧 Admin login: admin@workzen.com / admin123');
   console.log('📧 HR login: hr@workzen.com / admin123');
-  console.log('📧 Employee login: priya.patel@workzen.com / emp123');
+  console.log('📧 Employee login: priya.sharma@workzen.com / emp123');
 }
 
 main().catch(console.error).finally(() => prisma.$disconnect());
