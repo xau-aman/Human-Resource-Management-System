@@ -101,6 +101,7 @@ model Employee {
   user             User?            @relation(fields: [userId], references: [id])
   attendance       Attendance[]
   leaveRequests    LeaveRequest[]
+  leaveBalance     LeaveBalance?
   performanceReviews PerformanceReview[]
   employeeSkills   EmployeeSkill[]
   projectAssignments ProjectAssignment[]
@@ -137,6 +138,21 @@ model LeaveRequest {
   reviewedAt DateTime?
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
+}
+
+model LeaveBalance {
+  id         String   @id @default(cuid())
+  employeeId String   @unique
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  casualUsed Float    @default(0)
+  sickUsed   Float    @default(0)
+  paidUsed   Float    @default(0)
+  unpaidUsed Float    @default(0)
+  year       Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([employeeId, year])
 }
 
 model PerformanceReview {
