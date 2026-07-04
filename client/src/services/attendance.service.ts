@@ -1,34 +1,29 @@
 import type { AttendanceRecord, AttendanceSummary } from '../types';
-import { mockAttendance } from '../data/attendance.data';
-
-// TODO[ATTENDANCE]: Replace with real API calls to /api/v1/attendance
-
-/**
- * Calculate working hours between check-in and check-out strings.
- * TODO[ATTENDANCE]: Implement attendance calculation logic
- * @param checkIn - time string e.g. "09:00"
- * @param checkOut - time string e.g. "18:00"
- * @returns hours worked as number
- */
-export function calculateWorkingHours(checkIn: string, checkOut: string): number {
-  // Temporary implementation
-  const [inH, inM] = checkIn.split(':').map(Number);
-  const [outH, outM] = checkOut.split(':').map(Number);
-  return parseFloat(((outH * 60 + outM - (inH * 60 + inM)) / 60).toFixed(2));
-}
+import { api } from '../config/api';
 
 export async function getAttendance(date?: string): Promise<AttendanceRecord[]> {
-  if (date) return mockAttendance.filter(a => a.date === date);
-  return mockAttendance;
+  const query = date ? `?date=${date}` : '';
+  const res = await api.get<{ data: AttendanceRecord[] }>(`/attendance${query}`);
+  return res.data;
 }
 
-export async function getAttendanceSummary(): Promise<AttendanceSummary> {
-  const records = mockAttendance;
-  return {
-    present: records.filter(r => r.status === 'PRESENT').length,
-    absent: records.filter(r => r.status === 'ABSENT').length,
-    late: records.filter(r => r.status === 'LATE').length,
-    halfDay: records.filter(r => r.status === 'HALF_DAY').length,
-    total: records.length,
-  };
+export async function getAttendanceSummary(date?: string): Promise<AttendanceSummary> {
+  const query = date ? `?date=${date}` : '';
+  const res = await api.get<{ data: AttendanceSummary }>(`/attendance/summary${query}`);
+  return res.data;
+}
+
+export async function clockIn(): Promise<AttendanceRecord> {
+  const res = await api.post<{ data: AttendanceRecord }>('/attendance/clock-in', {});
+  return res.data;
+}
+
+export async function clockOut(): Promise<AttendanceRecord> {
+  const res = await api.post<{ data: AttendanceRecord }>('/attendance/clock-out', {});
+  return res.data;
+}
+
+export async function getMyAttendance(): Promise<AttendanceRecord[]> {
+  const res = await api.get<{ data: AttendanceRecord[] }>('/attendance/me');
+  return res.data;
 }

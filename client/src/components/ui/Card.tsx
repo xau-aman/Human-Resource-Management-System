@@ -3,14 +3,12 @@ import { clsx } from 'clsx';
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
   padding?: boolean;
+  glow?: boolean;
 }
 
-export function Card({ className, padding = true, children, ...props }: CardProps) {
+export function Card({ className, padding = true, glow = false, children, ...props }: CardProps) {
   return (
-    <div
-      className={clsx('bg-white rounded-xl border border-gray-100 shadow-sm', padding && 'p-5', className)}
-      {...props}
-    >
+    <div className={clsx(glow ? 'dark-card-glow' : 'dark-card', padding && 'p-5', className)} {...props}>
       {children}
     </div>
   );

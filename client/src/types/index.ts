@@ -17,6 +17,14 @@ export interface AuthUser {
   id: string;
   email: string;
   role: UserRole;
+  employee?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    employeeId: string;
+    designation?: string;
+    department?: { name: string };
+  };
 }
 
 // ─── Employee ──────────────────────────────────────────────────────────────

@@ -59,9 +59,9 @@ export default function PerformancePage() {
       <PageHeader title="Performance" description="Q4 2024 performance reviews" />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <StatCard title="Avg Score" value={`${avgScore.toFixed(1)}%`} icon={<TrendingUp size={18} />} />
-        <StatCard title="Reviews Done" value={reviews.length} icon={<CheckSquare size={18} />} iconColor="bg-emerald-50 text-emerald-600" />
-        <StatCard title="Top Performer" value={topPerformer ? `${topPerformer.employee.firstName}` : '—'} icon={<Star size={18} />} iconColor="bg-amber-50 text-amber-600" />
-        <StatCard title="Avg Goals Met" value={reviews.length ? `${Math.round(reviews.reduce((s, r) => s + r.goalsAchieved / r.totalGoals, 0) / reviews.length * 100)}%` : '—'} icon={<Target size={18} />} iconColor="bg-purple-50 text-purple-600" />
+        <StatCard title="Reviews Done" value={reviews.length} icon={<CheckSquare size={18} />} iconBg="bg-emerald-500" />
+        <StatCard title="Top Performer" value={topPerformer ? `${topPerformer.employee.firstName}` : '—'} icon={<Star size={18} />} iconBg="bg-amber-500" />
+        <StatCard title="Avg Goals Met" value={reviews.length ? `${Math.round(reviews.reduce((s, r) => s + r.goalsAchieved / r.totalGoals, 0) / reviews.length * 100)}%` : '—'} icon={<Target size={18} />} iconBg="bg-violet-500" />
       </div>
       <Card padding={false}>
         {loading ? <LoadingState /> : <Table columns={columns} data={reviews} keyExtractor={r => r.id} />}

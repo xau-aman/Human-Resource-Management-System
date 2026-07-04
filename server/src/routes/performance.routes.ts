@@ -1,11 +1,12 @@
 import { Router } from 'express';
 import * as performanceController from '../controllers/performance.controller';
+import { authenticate, allRoles } from '../middleware/auth.middleware';
 
 const router = Router();
 
-router.get('/top-performers', performanceController.getTopPerformers);
-router.get('/trend', performanceController.getPerformanceTrend);
-router.get('/', performanceController.getPerformanceReviews);
-router.get('/:employeeId', performanceController.getEmployeePerformance);
+router.get('/top-performers', authenticate, allRoles, performanceController.getTopPerformers);
+router.get('/trend', authenticate, allRoles, performanceController.getPerformanceTrend);
+router.get('/', authenticate, allRoles, performanceController.getPerformanceReviews);
+router.get('/:employeeId', authenticate, allRoles, performanceController.getEmployeePerformance);
 
 export default router;

@@ -1,7 +1,4 @@
-import { mockEmployees } from '../data/employees.data';
-import { mockAttendance } from '../data/attendance.data';
-import { mockLeaveRequests } from '../data/leave.data';
-import { mockPerformanceReviews } from '../data/performance.data';
+import { api } from '../config/api';
 
 export interface DashboardStats {
   totalEmployees: number;
@@ -10,73 +7,42 @@ export interface DashboardStats {
   avgPerformance: number;
 }
 
-export interface AttendanceChartData {
-  day: string;
-  present: number;
-  absent: number;
-  late: number;
-}
-
-export interface DepartmentData {
-  name: string;
-  value: number;
-}
-
-export interface PerformanceTrend {
-  month: string;
-  score: number;
-}
-
-// TODO[CORE]: Replace with real API calls to /api/v1/analytics
-
-export function getDashboardStats(): DashboardStats {
-  const presentToday = mockAttendance.filter(a => a.status === 'PRESENT').length;
-  const onLeave = mockEmployees.filter(e => e.employmentStatus === 'ON_LEAVE').length;
-  const avgPerformance = mockPerformanceReviews.reduce((sum, r) => sum + r.overallScore, 0) / mockPerformanceReviews.length;
+export async function getDashboardStats(): Promise<DashboardStats> {
+  const res = await api.get<{ data: { totalEmployees: number; activeEmployees: number; onLeave: number; departments: any[] } }>('/analytics/overview');
+  const summary = await api.get<{ data: { present: number; absent: number; late: number; total: number } }>('/attendance/summary');
   return {
-    totalEmployees: mockEmployees.length,
-    presentToday,
-    onLeave,
-    avgPerformance: parseFloat(avgPerformance.toFixed(1)),
+    totalEmployees: res.data.totalEmployees,
+    presentToday: summary.data.present,
+    onLeave: res.data.onLeave,
+    avgPerformance: 0,
   };
 }
 
-export function getAttendanceChartData(): AttendanceChartData[] {
-  return [
-    { day: 'Mon', present: 10, absent: 1, late: 1 },
-    { day: 'Tue', present: 11, absent: 0, late: 1 },
-    { day: 'Wed', present: 9, absent: 2, late: 1 },
-    { day: 'Thu', present: 10, absent: 1, late: 1 },
-    { day: 'Fri', present: 8, absent: 2, late: 2 },
-  ];
+export async function getAttendanceChartData(): Promise<{ day: string; present: number; absent: number; late: number }[]> {
+  const res = await api.get<{ data: { date: string; present: number; absent: number; late: number }[] }>('/analytics/attendance-trend?days=5');
+  return res.data.map(d => ({ day: new Date(d.date).toLocaleDateString('en', { weekday: 'short' }), present: d.present, absent: d.absent, late: d.late }));
 }
 
-export function getDepartmentDistribution(): DepartmentData[] {
-  const counts: Record<string, number> = {};
-  mockEmployees.forEach(e => { counts[e.department.name] = (counts[e.department.name] || 0) + 1; });
-  return Object.entries(counts).map(([name, value]) => ({ name, value }));
+export async function getDepartmentDistribution(): Promise<{ name: string; value: number }[]> {
+  const res = await api.get<{ data: { totalEmployees: number; departments: { name: string; _count: { employees: number } }[] } }>('/analytics/overview');
+  return res.data.departments.map((d: any) => ({ name: d.name, value: d._count?.employees ?? 0 }));
 }
 
-export function getPerformanceTrend(): PerformanceTrend[] {
-  return [
-    { month: 'Jul', score: 72 },
-    { month: 'Aug', score: 75 },
-    { month: 'Sep', score: 74 },
-    { month: 'Oct', score: 78 },
-    { month: 'Nov', score: 80 },
-    { month: 'Dec', score: 82 },
-  ];
+export async function getPerformanceTrend(): Promise<{ month: string; score: number }[]> {
+  const res = await api.get<{ data: { department: string; avgScore: number }[] }>('/analytics/department-performance');
+  return res.data.map(d => ({ month: d.department.slice(0, 3), score: d.avgScore }));
 }
 
 export function getRecentActivity() {
   return [
-    { id: '1', type: 'leave_approved', message: 'Priya Patel\'s sick leave was approved', time: '2 hours ago' },
+    { id: '1', type: 'leave_approved', message: 'Leave request approved for Priya Patel', time: '2 hours ago' },
     { id: '2', type: 'employee_joined', message: 'New employee Meera Krishnan joined Marketing', time: '1 day ago' },
-    { id: '3', type: 'performance_review', message: 'Q4 performance reviews completed for Engineering', time: '2 days ago' },
+    { id: '3', type: 'performance_review', message: 'Q4 performance reviews completed', time: '2 days ago' },
     { id: '4', type: 'leave_request', message: 'Rahul Verma submitted a leave request', time: '3 days ago' },
   ];
 }
 
-export function getUpcomingLeaves() {
-  return mockLeaveRequests.filter(l => l.status === 'PENDING').slice(0, 4);
+export async function getUpcomingLeaves(): Promise<any[]> {
+  const res = await api.get<{ data: any[] }>('/leaves?status=PENDING');
+  return res.data.slice(0, 4);
 }

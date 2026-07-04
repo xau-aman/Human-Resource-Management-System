@@ -5,6 +5,7 @@ import { authenticate, adminHROrManager, allRoles } from '../middleware/auth.mid
 const router = Router();
 
 router.get('/balance', authenticate, allRoles, leaveController.getLeaveBalance);
+router.get('/me', authenticate, allRoles, leaveController.getMyLeaves);
 router.get('/', authenticate, allRoles, leaveController.getLeaveRequests);
 router.post('/', authenticate, allRoles, leaveController.createLeaveRequest);
 router.patch('/:id/approve', authenticate, adminHROrManager, leaveController.approveLeave);

@@ -153,8 +153,8 @@ export async function approveLeave(id: string, actorRole?: string) {
   if (leave.status !== 'PENDING') throw new AppError('Leave request is not pending', 400);
 
   const normalizedRole = actorRole?.toUpperCase();
-  if (!normalizedRole || !['HR', 'ADMIN'].includes(normalizedRole)) {
-    throw new AppError('Only HR and ADMIN can approve leave requests', 403);
+  if (!normalizedRole || !['HR', 'ADMIN', 'MANAGER'].includes(normalizedRole)) {
+    throw new AppError('Only HR, ADMIN or MANAGER can approve leave requests', 403);
   }
 
   return prisma.leaveRequest.update({ where: { id }, data: { status: 'APPROVED', reviewedAt: new Date() }, include: leaveInclude });
@@ -166,8 +166,8 @@ export async function rejectLeave(id: string, actorRole?: string) {
   if (leave.status !== 'PENDING') throw new AppError('Leave request is not pending', 400);
 
   const normalizedRole = actorRole?.toUpperCase();
-  if (!normalizedRole || !['HR', 'ADMIN'].includes(normalizedRole)) {
-    throw new AppError('Only HR and ADMIN can reject leave requests', 403);
+  if (!normalizedRole || !['HR', 'ADMIN', 'MANAGER'].includes(normalizedRole)) {
+    throw new AppError('Only HR, ADMIN or MANAGER can reject leave requests', 403);
   }
 
   return prisma.leaveRequest.update({ where: { id }, data: { status: 'REJECTED', reviewedAt: new Date() }, include: leaveInclude });

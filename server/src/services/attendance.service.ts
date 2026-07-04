@@ -1,4 +1,5 @@
 import prisma from '../config/prisma';
+import { AppError } from '../utils/AppError';
 
 interface GetAttendanceParams {
   date?: string;
@@ -13,27 +14,30 @@ interface CreateAttendanceInput {
   status: string;
 }
 
-/**
- * Calculate working hours between check-in and check-out.
- * TODO[ATTENDANCE]: Implement attendance calculation logic
- * Expected inputs: checkIn (Date), checkOut (Date)
- * Expected output: number (hours worked, e.g. 8.5)
- */
 export function calculateWorkingHours(checkIn: Date, checkOut: Date): number {
   const diffMs = checkOut.getTime() - checkIn.getTime();
   return parseFloat((diffMs / 3600000).toFixed(2));
 }
 
 export async function getAttendance({ date, employeeId }: GetAttendanceParams) {
-  const where = {
-    ...(date && { date: new Date(date) }),
-    ...(employeeId && { employeeId }),
-  };
+  const where: any = {};
+  if (date) where.date = new Date(date);
+  if (employeeId) where.employeeId = employeeId;
+
   return prisma.attendance.findMany({
     where,
-    include: { employee: { select: { id: true, firstName: true, lastName: true, employeeId: true, department: { select: { name: true } } } } },
+    include: { employee: { select: { id: true, firstName: true, lastName: true, employeeId: true, department: { select: { id: true, name: true } } } } },
     orderBy: { date: 'desc' },
     take: 100,
+  });
+}
+
+export async function getMyAttendance(employeeId: string) {
+  return prisma.attendance.findMany({
+    where: { employeeId },
+    include: { employee: { select: { id: true, firstName: true, lastName: true, employeeId: true, department: { select: { id: true, name: true } } } } },
+    orderBy: { date: 'desc' },
+    take: 30,
   });
 }
 
@@ -57,6 +61,55 @@ export async function getAttendanceSummary(date?: string) {
     else if (r.status === 'HALF_DAY') summary.halfDay = count;
   }
   return summary;
+}
+
+export async function clockIn(userId: string) {
+  // Find employee by userId
+  const user = await prisma.user.findUnique({ where: { id: userId }, include: { employee: true } });
+  if (!user?.employee) throw new AppError('Employee profile not found', 404);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Check if already clocked in today
+  const existing = await prisma.attendance.findFirst({
+    where: { employeeId: user.employee.id, date: today },
+  });
+
+  if (existing) throw new AppError('Already clocked in today', 400);
+
+  const now = new Date();
+  const hour = now.getHours();
+  const status = hour >= 10 ? 'LATE' : 'PRESENT';
+
+  return prisma.attendance.create({
+    data: { employeeId: user.employee.id, date: today, checkIn: now, status },
+    include: { employee: { select: { id: true, firstName: true, lastName: true, employeeId: true, department: { select: { id: true, name: true } } } } },
+  });
+}
+
+export async function clockOut(userId: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId }, include: { employee: true } });
+  if (!user?.employee) throw new AppError('Employee profile not found', 404);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const existing = await prisma.attendance.findFirst({
+    where: { employeeId: user.employee.id, date: today },
+  });
+
+  if (!existing) throw new AppError('Not clocked in today', 400);
+  if (existing.checkOut) throw new AppError('Already clocked out', 400);
+
+  const now = new Date();
+  const workingHours = existing.checkIn ? calculateWorkingHours(existing.checkIn, now) : undefined;
+
+  return prisma.attendance.update({
+    where: { id: existing.id },
+    data: { checkOut: now, workingHours },
+    include: { employee: { select: { id: true, firstName: true, lastName: true, employeeId: true, department: { select: { id: true, name: true } } } } },
+  });
 }
 
 export async function createAttendance(data: CreateAttendanceInput) {
