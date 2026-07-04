@@ -8,7 +8,7 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 
 export function Card({ className, padding = true, glow = false, children, ...props }: CardProps) {
   return (
-    <div className={clsx(glow ? 'dark-card-glow' : 'dark-card', padding && 'p-5', className)} {...props}>
+    <div className={clsx(glow ? 'neo-card-accent' : 'neo-card', padding && 'p-5', className)} {...props}>
       {children}
     </div>
   );

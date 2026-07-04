@@ -1,13 +1,7 @@
 import React from 'react';
 import { clsx } from 'clsx';
 
-const colors = [
-  'from-indigo-500 to-violet-600',
-  'from-violet-500 to-purple-600',
-  'from-blue-500 to-indigo-600',
-  'from-emerald-500 to-teal-600',
-  'from-rose-500 to-pink-600',
-];
+const colors = ['bg-[#fce4ec]', 'bg-[#e8f5e9]', 'bg-[#e3f2fd]', 'bg-[#fff3e0]', 'bg-[#f3e5f5]'];
 
 interface AvatarProps {
   name: string;
@@ -18,10 +12,10 @@ interface AvatarProps {
 export function Avatar({ name, size = 'md', className }: AvatarProps) {
   const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
   const colorIdx = name.charCodeAt(0) % colors.length;
-  const sizes = { sm: 'w-7 h-7 text-[10px]', md: 'w-9 h-9 text-xs', lg: 'w-11 h-11 text-sm' };
+  const sizes = { sm: 'w-8 h-8 text-[10px]', md: 'w-10 h-10 text-xs', lg: 'w-12 h-12 text-sm' };
 
   return (
-    <div className={clsx(`bg-gradient-to-br ${colors[colorIdx]} rounded-xl flex items-center justify-center font-bold text-white flex-shrink-0 shadow-lg`, sizes[size], className)}>
+    <div className={clsx(`${colors[colorIdx]} rounded-full border-2 border-black flex items-center justify-center font-black text-black flex-shrink-0`, sizes[size], className)}>
       {initials}
     </div>
   );

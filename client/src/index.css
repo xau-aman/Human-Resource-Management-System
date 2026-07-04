@@ -6,114 +6,177 @@
   body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     -webkit-font-smoothing: antialiased;
-    background: #080b14;
-    color: #e2e8f0;
+    background: #000000;
+    color: #000000;
+  }
+
+  *::selection {
+    background-color: #C54B8C !important;
+    color: white !important;
   }
 }
 
 @layer components {
-  /* ── Dark Cards ── */
-  .dark-card {
-    background: rgba(15, 20, 35, 0.85);
-    border: 1px solid rgba(99, 102, 241, 0.12);
-    border-radius: 16px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04);
+  /* ── Neobrutalism Card ── */
+  .neo-card {
+    background: #ffffff;
+    border: 3px solid #000000;
+    border-radius: 1.25rem;
+    box-shadow: 6px 6px 0px 0px rgba(0,0,0,1);
   }
 
-  .dark-card-glow {
-    background: rgba(15, 20, 35, 0.9);
-    border: 1px solid rgba(99, 102, 241, 0.25);
-    border-radius: 16px;
-    box-shadow: 0 0 0 1px rgba(99,102,241,0.1), 0 8px 32px rgba(99,102,241,0.12), 0 4px 16px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+  .neo-card-sm {
+    background: #ffffff;
+    border: 2px solid #000000;
+    border-radius: 1rem;
+    box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
+  }
+
+  .neo-card-accent {
+    background: #fce4ec;
+    border: 3px solid #000000;
+    border-radius: 1.25rem;
+    box-shadow: 6px 6px 0px 0px rgba(0,0,0,1);
   }
 
   /* ── Sidebar ── */
-  .sidebar-bg {
-    background: rgba(8, 11, 20, 0.98);
-    border-right: 1px solid rgba(99, 102, 241, 0.1);
+  .sidebar-neo {
+    background: #fce4ec;
+    border-right: 3px solid #000000;
+    border-radius: 0 2rem 2rem 0;
   }
 
   /* ── Topbar ── */
-  .topbar-bg {
-    background: rgba(10, 14, 26, 0.95);
-    border-bottom: 1px solid rgba(99, 102, 241, 0.1);
-    backdrop-filter: blur(12px);
+  .topbar-neo {
+    background: #ffffff;
+    border-bottom: 3px solid #000000;
   }
 
   /* ── Page background ── */
   .page-bg {
-    background: #080b14;
-    background-image:
-      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99,102,241,0.08) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(139,92,246,0.05) 0%, transparent 50%);
+    background: #000000;
     min-height: 100vh;
   }
 
-  /* ── Neon glow button ── */
-  .btn-glow {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    box-shadow: 0 0 20px rgba(99,102,241,0.35), 0 4px 12px rgba(0,0,0,0.3);
-    transition: all 0.2s ease;
-  }
-  .btn-glow:hover {
-    box-shadow: 0 0 28px rgba(99,102,241,0.5), 0 4px 16px rgba(0,0,0,0.4);
-    transform: translateY(-1px);
+  /* ── Main content area ── */
+  .main-content {
+    background: #ffffff;
+    border-radius: 2rem;
+    border: 3px solid #000000;
+    box-shadow: 6px 6px 0px 0px rgba(0,0,0,1);
   }
 
-  /* ── Input dark ── */
-  .input-dark {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    color: #e2e8f0;
-    border-radius: 10px;
-    transition: all 0.2s;
+  /* ── Neobrutalism Button ── */
+  .btn-neo {
+    background: #C54B8C;
+    color: #ffffff;
+    border: 2px solid #000000;
+    border-radius: 9999px;
+    box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.15s;
+    cursor: pointer;
   }
-  .input-dark:focus {
-    border-color: rgba(99,102,241,0.5);
-    box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+  .btn-neo:hover {
+    box-shadow: 2px 2px 0px 0px rgba(0,0,0,1);
+    transform: translate(2px, 2px);
+  }
+  .btn-neo:active {
+    box-shadow: 0px 0px 0px 0px rgba(0,0,0,1);
+    transform: translate(4px, 4px);
+  }
+
+  .btn-neo-secondary {
+    background: #ffffff;
+    color: #000000;
+    border: 2px solid #000000;
+    border-radius: 9999px;
+    box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.15s;
+    cursor: pointer;
+  }
+  .btn-neo-secondary:hover {
+    box-shadow: 2px 2px 0px 0px rgba(0,0,0,1);
+    transform: translate(2px, 2px);
+    background: #fce4ec;
+  }
+
+  .btn-neo-ghost {
+    background: transparent;
+    color: #000000;
+    border: none;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    transition: all 0.15s;
+    cursor: pointer;
+  }
+  .btn-neo-ghost:hover {
+    background: #fce4ec;
+  }
+
+  .btn-neo-danger {
+    background: #ffffff;
+    color: #dc2626;
+    border: 2px solid #dc2626;
+    border-radius: 9999px;
+    box-shadow: 3px 3px 0px 0px rgba(220,38,38,0.5);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.15s;
+    cursor: pointer;
+  }
+  .btn-neo-danger:hover {
+    box-shadow: 1px 1px 0px 0px rgba(220,38,38,0.5);
+    transform: translate(2px, 2px);
+    background: #fef2f2;
+  }
+
+  /* ── Input ── */
+  .input-neo {
+    background: #ffffff;
+    border: 2px solid #000000;
+    border-radius: 0.75rem;
+    color: #000000;
+    font-weight: 500;
+    transition: all 0.15s;
+  }
+  .input-neo:focus {
+    border-color: #C54B8C;
+    box-shadow: 3px 3px 0px 0px rgba(197,75,140,0.4);
     outline: none;
   }
-  .input-dark::placeholder { color: rgba(255,255,255,0.2); }
+  .input-neo::placeholder { color: rgba(0,0,0,0.3); }
 
   /* ── Stat card ── */
-  .stat-card {
-    background: linear-gradient(135deg, rgba(15,20,35,0.9) 0%, rgba(20,26,46,0.9) 100%);
-    border: 1px solid rgba(99,102,241,0.15);
-    border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04);
+  .stat-neo {
+    background: #ffffff;
+    border: 2px solid #000000;
+    border-radius: 1.25rem;
+    box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
   }
 
-  /* ── Table dark ── */
-  .table-dark thead tr {
-    background: rgba(99,102,241,0.06);
-    border-bottom: 1px solid rgba(99,102,241,0.12);
-  }
-  .table-dark tbody tr {
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-    transition: background 0.15s;
-  }
-  .table-dark tbody tr:hover {
-    background: rgba(99,102,241,0.06);
-  }
-
-  /* ── Badge dark ── */
-  .badge-violet { background: rgba(139,92,246,0.15); color: #a78bfa; border: 1px solid rgba(139,92,246,0.25); }
-  .badge-indigo { background: rgba(99,102,241,0.15); color: #818cf8; border: 1px solid rgba(99,102,241,0.25); }
-  .badge-emerald { background: rgba(16,185,129,0.12); color: #34d399; border: 1px solid rgba(16,185,129,0.2); }
-  .badge-amber { background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.2); }
-  .badge-red { background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
-  .badge-gray { background: rgba(255,255,255,0.06); color: #94a3b8; border: 1px solid rgba(255,255,255,0.1); }
+  /* ── Badge ── */
+  .badge-neo-green { background: #d1fae5; color: #065f46; border: 1.5px solid #065f46; font-weight: 700; }
+  .badge-neo-red { background: #fee2e2; color: #991b1b; border: 1.5px solid #991b1b; font-weight: 700; }
+  .badge-neo-yellow { background: #fef3c7; color: #92400e; border: 1.5px solid #92400e; font-weight: 700; }
+  .badge-neo-blue { background: #dbeafe; color: #1e40af; border: 1.5px solid #1e40af; font-weight: 700; }
+  .badge-neo-purple { background: #fce4ec; color: #C54B8C; border: 1.5px solid #C54B8C; font-weight: 700; }
+  .badge-neo-gray { background: #f3f4f6; color: #374151; border: 1.5px solid #374151; font-weight: 700; }
 
   /* ── Scrollbar ── */
-  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar { width: 12px; height: 12px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.3); border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.5); }
-
-  /* ── Glow dot ── */
-  .glow-dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: #6366f1;
-    box-shadow: 0 0 8px rgba(99,102,241,0.8);
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #cfcfd4 0%, #bdbdc2 100%);
+    border: 3px solid transparent;
+    background-clip: padding-box;
+    border-radius: 999px;
   }
+  ::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #e6e6ec 0%, #d6d6dc 100%); }
 }

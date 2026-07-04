@@ -7,4 +7,5 @@ export { Select } from './Select';
 export { Modal } from './Modal';
 export { Table } from './Table';
 export { StatCard } from './StatCard';
+export { Logo } from './Logo';
 export { EmptyState, LoadingState, ErrorState, PageHeader } from './StateComponents';
