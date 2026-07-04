@@ -1,0 +1,214 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  HR
+  MANAGER
+  EMPLOYEE
+}
+
+enum EmploymentStatus {
+  ACTIVE
+  INACTIVE
+  ON_LEAVE
+  TERMINATED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  HALF_DAY
+  HOLIDAY
+}
+
+enum LeaveType {
+  CASUAL
+  SICK
+  PAID
+  UNPAID
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum SkillLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+enum InsightType {
+  WORKLOAD_RISK
+  SKILL_GAP
+  PERFORMANCE_OPPORTUNITY
+  ATTENDANCE_RISK
+}
+
+enum InsightSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  role         UserRole  @default(EMPLOYEE)
+  employee     Employee?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Department {
+  id          String     @id @default(cuid())
+  name        String     @unique
+  description String?
+  employees   Employee[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Employee {
+  id               String           @id @default(cuid())
+  employeeId       String           @unique
+  firstName        String
+  lastName         String
+  email            String           @unique
+  phone            String?
+  designation      String
+  joiningDate      DateTime
+  employmentStatus EmploymentStatus @default(ACTIVE)
+  avatar           String?
+  departmentId     String
+  department       Department       @relation(fields: [departmentId], references: [id])
+  managerId        String?
+  manager          Employee?        @relation("ManagerSubordinates", fields: [managerId], references: [id])
+  subordinates     Employee[]       @relation("ManagerSubordinates")
+  userId           String?          @unique
+  user             User?            @relation(fields: [userId], references: [id])
+  attendance       Attendance[]
+  leaveRequests    LeaveRequest[]
+  performanceReviews PerformanceReview[]
+  employeeSkills   EmployeeSkill[]
+  projectAssignments ProjectAssignment[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+}
+
+model Attendance {
+  id         String           @id @default(cuid())
+  employeeId String
+  employee   Employee         @relation(fields: [employeeId], references: [id])
+  date       DateTime         @db.Date
+  checkIn    DateTime?
+  checkOut   DateTime?
+  status     AttendanceStatus @default(PRESENT)
+  workingHours Float?
+  notes      String?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  @@unique([employeeId, date])
+}
+
+model LeaveRequest {
+  id         String      @id @default(cuid())
+  employeeId String
+  employee   Employee    @relation(fields: [employeeId], references: [id])
+  leaveType  LeaveType
+  startDate  DateTime    @db.Date
+  endDate    DateTime    @db.Date
+  reason     String
+  status     LeaveStatus @default(PENDING)
+  reviewedBy String?
+  reviewedAt DateTime?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+model PerformanceReview {
+  id              String   @id @default(cuid())
+  employeeId      String
+  employee        Employee @relation(fields: [employeeId], references: [id])
+  reviewPeriod    String
+  tasksCompleted  Int      @default(0)
+  goalsAchieved   Int      @default(0)
+  totalGoals      Int      @default(0)
+  managerRating   Float    @default(0)
+  overallScore    Float    @default(0)
+  comments        String?
+  reviewedBy      String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Skill {
+  id             String          @id @default(cuid())
+  name           String          @unique
+  category       String
+  employeeSkills EmployeeSkill[]
+  createdAt      DateTime        @default(now())
+}
+
+model EmployeeSkill {
+  id         String     @id @default(cuid())
+  employeeId String
+  employee   Employee   @relation(fields: [employeeId], references: [id])
+  skillId    String
+  skill      Skill      @relation(fields: [skillId], references: [id])
+  level      SkillLevel
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  @@unique([employeeId, skillId])
+}
+
+model Project {
+  id          String              @id @default(cuid())
+  name        String
+  description String?
+  startDate   DateTime
+  endDate     DateTime?
+  status      String              @default("ACTIVE")
+  assignments ProjectAssignment[]
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+}
+
+model ProjectAssignment {
+  id         String   @id @default(cuid())
+  projectId  String
+  project    Project  @relation(fields: [projectId], references: [id])
+  employeeId String
+  employee   Employee @relation(fields: [employeeId], references: [id])
+  role       String
+  assignedAt DateTime @default(now())
+
+  @@unique([projectId, employeeId])
+}
+
+model WorkforceInsight {
+  id            String          @id @default(cuid())
+  type          InsightType
+  severity      InsightSeverity
+  title         String
+  description   String
+  employeeIds   String[]
+  departmentId  String?
+  isResolved    Boolean         @default(false)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}

@@ -1,0 +1,10 @@
+import type { PerformanceReview } from '../types';
+
+export const mockPerformanceReviews: PerformanceReview[] = [
+  { id: 'p1', employeeId: '1', employee: { id: '1', firstName: 'Arjun', lastName: 'Sharma', employeeId: 'WZ1001', designation: 'Engineering Manager', department: { id: 'd1', name: 'Engineering' } }, reviewPeriod: 'Q4 2024', tasksCompleted: 32, goalsAchieved: 5, totalGoals: 6, managerRating: 4.5, overallScore: 88.5 },
+  { id: 'p2', employeeId: '2', employee: { id: '2', firstName: 'Priya', lastName: 'Patel', employeeId: 'WZ1002', designation: 'Senior Frontend Developer', department: { id: 'd1', name: 'Engineering' } }, reviewPeriod: 'Q4 2024', tasksCompleted: 28, goalsAchieved: 4, totalGoals: 5, managerRating: 4.2, overallScore: 82.0 },
+  { id: 'p3', employeeId: '3', employee: { id: '3', firstName: 'Rahul', lastName: 'Verma', employeeId: 'WZ1003', designation: 'Backend Developer', department: { id: 'd1', name: 'Engineering' } }, reviewPeriod: 'Q4 2024', tasksCompleted: 22, goalsAchieved: 3, totalGoals: 5, managerRating: 3.8, overallScore: 72.0 },
+  { id: 'p4', employeeId: '6', employee: { id: '6', firstName: 'Ananya', lastName: 'Reddy', employeeId: 'WZ1006', designation: 'Lead Designer', department: { id: 'd2', name: 'Design' } }, reviewPeriod: 'Q4 2024', tasksCompleted: 25, goalsAchieved: 5, totalGoals: 6, managerRating: 4.7, overallScore: 91.0 },
+  { id: 'p5', employeeId: '8', employee: { id: '8', firstName: 'Divya', lastName: 'Singh', employeeId: 'WZ1008', designation: 'Marketing Manager', department: { id: 'd3', name: 'Marketing' } }, reviewPeriod: 'Q4 2024', tasksCompleted: 20, goalsAchieved: 4, totalGoals: 6, managerRating: 4.0, overallScore: 76.5 },
+  { id: 'p6', employeeId: '11', employee: { id: '11', firstName: 'Aditya', lastName: 'Joshi', employeeId: 'WZ1011', designation: 'HR Manager', department: { id: 'd4', name: 'Human Resources' } }, reviewPeriod: 'Q4 2024', tasksCompleted: 18, goalsAchieved: 4, totalGoals: 5, managerRating: 4.3, overallScore: 84.0 },
+];
